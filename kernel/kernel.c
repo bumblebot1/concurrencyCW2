@@ -111,40 +111,18 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
     case 0x01 : { // writeChar( fd, x)
       int   fd = ( int   )( ctx->gpr[ 0 ] );  
-      char   x = ( char  )( ctx->gpr[ 1 ] );  
+      char*  x = ( char* )( ctx->gpr[ 1 ] );  
+      int    n = ( int   )( ctx->gpr[ 2 ] ); 
 
-      PL011_putc( UART0, x );
+      for( int i = 0; i < n; i++ ) {
+        PL011_putc( UART0, *x++ );
+      }
       
+      ctx->gpr[ 0 ] = n;
       break;
     }
     
-    
-    case 0x02:{ // writeInt( fd, x) 
-      int   fd = ( int   )( ctx->gpr[ 0 ] );  
-      int    x = ( int   )( ctx->gpr[ 1 ] );  
- 
-      char f[11];
-      int n=0;
-      if(x==0){
-        f[0]=itox(x);
-        PL011_putc( UART0, f[0] );
-        break;
-      }
-      while(x!=0){
-        int a=x%10;
-        x=x/10;
-        f[n]=itox(a);
-        n++;
-      }
-      for(int i=n-1;i>=0;i--){
-        PL011_putc( UART0, f[i] );
-      }
-      break;
-    
-    }
-    
-    
-    case 0x03:  { // read( x , n )
+    case 0x02:  { // read( x , n )
       int    fd = ( int   )( ctx->gpr[ 0 ] );
       char*  x  = ( char* )( ctx->gpr[ 1 ] );
       int    n  = ( int   )( ctx->gpr[ 2 ] );

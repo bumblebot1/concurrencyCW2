@@ -11,7 +11,6 @@
 #include "interrupt.h"
 
 // Include functionality from newlib, the embedded standard C library.
-
 #include <string.h>
 
 // Include definitions relating to the 2 user programs.

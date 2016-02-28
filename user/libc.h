@@ -3,16 +3,14 @@
 
 #include <stddef.h>
 #include <stdint.h>
-
-// write a single character to the fileDescriptor
-int writeChar( int fd, char x);
-
-// write an integer to the fileDescriptor
-int writeInt( int fd, int x);
+#include "PL011.h"
+// writes n characters to the fileDescriptor
+int write( int fd, void* x, int n);
 
 // read n bytes from emulated UART into x
 int read ( int fd, void* x, size_t n);
 
+// writes the given string to console and also replaces % with given arguments(in particular only ints)
 void printf(char* str,...);
 
 #endif
