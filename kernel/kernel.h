@@ -18,6 +18,7 @@
 #include "P0.h"
 #include "P1.h"
 #include "P2.h"
+#include "P4.h"
 
 /* The kernel source code is made simpler by three type definitions:
  *
@@ -40,4 +41,5 @@ typedef struct {
   ctx_t ctx;
 } pcb_t;
 
+extern uint32_t boh;
 #endif

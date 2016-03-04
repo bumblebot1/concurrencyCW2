@@ -105,6 +105,9 @@ int read( int fd, void* x, size_t n ){
               : "r" (fd), "r" (x), "r" (n) 
               : "r0", "r1", "r2" );
 
-  return r;
-  
+  return r; 
+}
+
+int fork(){
+  asm volatile("svc #3");
 }

@@ -9,7 +9,10 @@
  *   can be created, and neither is able to complete.
  */
 
-pcb_t pcb[ 3 ], *current = NULL;
+pcb_t pcb[ 1000 ], *current = NULL;
+int nAP  = 0; //number of active proceses
+int nDCP = 0;  //number of dynamically create processes
+
 
 void scheduler( ctx_t* ctx ) {
   if      ( current == &pcb[ 0 ] ) {
@@ -37,7 +40,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
    *   mode, with IRQ interrupts enabled, and
    * - the PC and SP values matche the entry point and top of stack. 
    */
-
+  
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
   pcb[ 0 ].pid      = 0;
   pcb[ 0 ].ctx.cpsr = 0x50;
@@ -51,7 +54,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
   
   memset( &pcb[ 2 ], 0, sizeof( pcb_t ) );
-  pcb[ 2 ].pid      = 1;
+  pcb[ 2 ].pid      = 2;
   pcb[ 2 ].ctx.cpsr = 0x50;
   pcb[ 2 ].ctx.pc   = ( uint32_t )( entry_P2 );
   pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_P2 );
@@ -61,7 +64,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
    */
 
   current = &pcb[ 0 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
-  
+  nAP = 3;
   TIMER0->Timer1Load     = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl     = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl    |= 0x00000040; // select periodic timer
@@ -86,7 +89,7 @@ void kernel_handler_irq(ctx_t* ctx) {
   // Step 4: handle the interrupt, then clear (or reset) the source.
 
   if( id == GIC_SOURCE_TIMER0 ) {
-    PL011_putc( UART0, 'T' ); TIMER0->Timer1IntClr = 0x01;
+    TIMER0->Timer1IntClr = 0x01;
     scheduler( ctx );
   }
 
@@ -109,7 +112,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       scheduler( ctx );
       break;
     }
-    case 0x01 : { // writeChar( fd, x)
+    case 0x01 : { // write( fd, x, n )
       int   fd = ( int   )( ctx->gpr[ 0 ] );  
       char*  x = ( char* )( ctx->gpr[ 1 ] );  
       int    n = ( int   )( ctx->gpr[ 2 ] ); 
@@ -133,7 +136,23 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       
       break;
     }
-    default   : { // unknown
+    case 0x03: { // fork()
+      
+      if(nDCP<100){
+        int n = nAP;
+        nDCP++;
+        memset( &pcb[ n ], 0, sizeof( pcb_t ) );
+        pcb[ n ].pid = n;
+        pcb[ n ].ctx.sp = (nDCP)*4*1000 + ((uint32_t)&boh);
+        pcb[ n ].ctx.cpsr = 0x50;
+        pcb[ n ].ctx.pc   = (uint32_t) (entry_P4);
+        nAP++;
+        current = &pcb[n];
+        memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
+      }
+      break;
+    }
+    default: {
       break;
     }
   }

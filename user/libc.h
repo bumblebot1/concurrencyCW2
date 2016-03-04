@@ -13,4 +13,5 @@ int read ( int fd, void* x, size_t n);
 // writes the given string to console and also replaces % with given arguments(in particular only ints)
 void printf(char* str,...);
 
+int fork();
 #endif

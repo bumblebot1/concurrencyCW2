@@ -15,6 +15,9 @@ SECTIONS {
   /* allocate stack for irq mode */
   .       = . + 0x00001000;  
   tos_irq = .;
+  /* allocate bottom of heap kernel*/
+  boh     = .;
+  .       = . + 0x00800000;
   /* allocate stack for P0       */
   .       = . + 0x00001000;  
   tos_P0  = .;
