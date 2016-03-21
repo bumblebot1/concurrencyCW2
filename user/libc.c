@@ -8,8 +8,8 @@ int write( int fd, void* x, int n ) {
                 "mov r1, %2 \n"
                 "mov r3, %3 \n"
                 "svc #1     \n"
-                "mov %0, r0 \n" 
-              : "=r" (r) 
+                "mov %0, r0 \n"
+              : "=r" (r)
               : "r" (fd), "r" (x), "r" (n)
               : "r0", "r1" );
 
@@ -50,24 +50,24 @@ void printf(char* str,...){
   char* x;
   unsigned int i;
   char* s;
-  
+
   va_list arg;
   va_start(arg,str);
-  
+
   int j;
   int n=0;
-  
+
   for(j=0;x[j]!='\0';j++){
     if(n!='%')
       n++;
     else
       n=n+12;
   }
-  
+
   n++;
   j=0;
-  
-  char toWrite[n]; 
+
+  char toWrite[n];
   for(x=str;*x!='\0';x++){
     while( *x !='%'&& *x!='\0'){
       toWrite[j++]=*x;
@@ -89,25 +89,40 @@ void printf(char* str,...){
     }
   }
   va_end(arg);
-  
+
   write(0,toWrite,j);
 }
 
 int read( int fd, void* x, size_t n ){
   int r;
-  
+
   asm volatile( "mov r0, %1 \n"
                 "mov r1, %2 \n"
                 "mov r2, %3 \n"
                 "svc #2     \n"
-                "mov %0, r0 \n" 
-              : "=r" (r) 
-              : "r" (fd), "r" (x), "r" (n) 
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (fd), "r" (x), "r" (n)
               : "r0", "r1", "r2" );
 
-  return r; 
+  return r;
+}
+
+int readLine(int fd, void* x){
+    int r;
+
+    asm volatile( "mov r0, %1 \n"
+                  "mov r1, %2 \n"
+                  "svc #3     \n"
+                  "mov %0, r0 \n"
+                : "=r" (r)
+                : "r" (fd), "r" (x)
+                : "r0", "r1");
+
+    return r;
+
 }
 
 int fork(){
-  asm volatile("svc #3");
+  asm volatile("svc #4");
 }

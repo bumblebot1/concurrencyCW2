@@ -1,8 +1,8 @@
 #include "kernel.h"
 
-/* Since we *know* there will be 2 processes, stemming from the 2 user 
- * programs, we can 
- * 
+/* Since we *know* there will be 2 processes, stemming from the 2 user
+ * programs, we can
+ *
  * - allocate a fixed-size process table (of PCBs), and use a pointer
  *   to keep track of which entry is currently executing, and
  * - employ a fixed-case of round-robin scheduling: no more processes
@@ -17,8 +17,8 @@ int nDCP = 0;  //number of dynamically create processes
 void scheduler( ctx_t* ctx ) {
   if      ( current == &pcb[ 0 ] ) {
     memcpy( &pcb[ 0 ].ctx, ctx, sizeof( ctx_t ) );
-    memcpy( ctx, &pcb[ 1 ].ctx, sizeof( ctx_t ) );
-    current = &pcb[ 1 ];
+    memcpy( ctx, &pcb[ 0 ].ctx, sizeof( ctx_t ) );
+    current = &pcb[ 0 ];
   }
   else if ( current == &pcb[ 1 ] ) {
     memcpy( &pcb[ 1 ].ctx, ctx, sizeof( ctx_t ) );
@@ -27,32 +27,37 @@ void scheduler( ctx_t* ctx ) {
   }
   else if ( current == &pcb[ 2 ] ) {
     memcpy( &pcb[ 2 ].ctx, ctx, sizeof( ctx_t ) );
+    memcpy( ctx, &pcb[ 3 ].ctx, sizeof( ctx_t ) );
+    current = &pcb[ 3 ];
+  }
+  else if ( current == &pcb[ 3 ] ) {
+    memcpy( &pcb[ 3 ].ctx, ctx, sizeof( ctx_t ) );
     memcpy( ctx, &pcb[ 0 ].ctx, sizeof( ctx_t ) );
     current = &pcb[ 0 ];
   }
 }
 
-void kernel_handler_rst( ctx_t* ctx              ) { 
+void kernel_handler_rst( ctx_t* ctx              ) {
   /* Initialise PCBs representing processes stemming from execution of
    * the two user programs.  Note in each case that
-   *    
-   * - the CPSR value of 0x50 means the processor is switched into USR 
+   *
+   * - the CPSR value of 0x50 means the processor is switched into USR
    *   mode, with IRQ interrupts enabled, and
-   * - the PC and SP values matche the entry point and top of stack. 
+   * - the PC and SP values matche the entry point and top of stack.
    */
-  
+
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
   pcb[ 0 ].pid      = 0;
   pcb[ 0 ].ctx.cpsr = 0x50;
-  pcb[ 0 ].ctx.pc   = ( uint32_t )( entry_P0 );
-  pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_P0 );
+  pcb[ 0 ].ctx.pc   = ( uint32_t )( entry_Sh );
+  pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_Sh );
 
   memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
   pcb[ 1 ].pid      = 1;
   pcb[ 1 ].ctx.cpsr = 0x50;
   pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_P1 );
   pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
-  
+
   memset( &pcb[ 2 ], 0, sizeof( pcb_t ) );
   pcb[ 2 ].pid      = 2;
   pcb[ 2 ].ctx.cpsr = 0x50;
@@ -77,7 +82,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   GICD0->CTLR            = 0x00000001; // enable GIC distributor
 
   irq_enable();
-  
+
   return;
 }
 
@@ -98,9 +103,9 @@ void kernel_handler_irq(ctx_t* ctx) {
   GICC0->EOIR = id;
 }
 
-void kernel_handler_svc( ctx_t* ctx, uint32_t id ) { 
+void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
   /* Based on the identified encoded as an immediate operand in the
-   * instruction, 
+   * instruction,
    *
    * - read  the arguments from preserved usr mode registers,
    * - perform whatever is appropriate for this system call,
@@ -113,31 +118,49 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
     case 0x01 : { // write( fd, x, n )
-      int   fd = ( int   )( ctx->gpr[ 0 ] );  
-      char*  x = ( char* )( ctx->gpr[ 1 ] );  
-      int    n = ( int   )( ctx->gpr[ 2 ] ); 
+      int   fd = ( int   )( ctx->gpr[ 0 ] );
+      char*  x = ( char* )( ctx->gpr[ 1 ] );
+      int    n = ( int   )( ctx->gpr[ 2 ] );
 
       for( int i = 0; i < n; i++ ) {
         PL011_putc( UART0, *x++ );
       }
-      
+
       ctx->gpr[ 0 ] = n;
       break;
     }
-    
-    case 0x02:  { // read( x , n )
+
+    case 0x02: { // read(fd, x, n )
       int    fd = ( int   )( ctx->gpr[ 0 ] );
       char*  x  = ( char* )( ctx->gpr[ 1 ] );
       int    n  = ( int   )( ctx->gpr[ 2 ] );
-      
+
       for( int i=0; i < n; i++){
-        x[i] = PL011_getc( UART0 );  
+        x[i] = PL011_getc( UART0 );
       }
-      
+
       break;
     }
-    case 0x03: { // fork()
-      
+    case 0x03: { // readLine(fd, x)
+      int    fd = ( int   )( ctx->gpr[ 0 ] );
+      char*  x  = ( char* )( ctx->gpr[ 1 ] );
+      int n = 0;
+      char y;
+      while(1){
+        char y = PL011_getc( UART0 );
+        if( y=='\n'){
+          break;
+        }
+        x[n]=y;
+        n++;
+        break;
+      }
+
+      ctx->gpr[ 0 ] = n;
+      break;
+    }
+    case 0x04: { // fork()
+
       if(nDCP<100){
         int n = nAP;
         nDCP++;
@@ -147,8 +170,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         pcb[ n ].ctx.cpsr = 0x50;
         pcb[ n ].ctx.pc   = (uint32_t) (entry_P4);
         nAP++;
-        current = &pcb[n];
-        memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
+        //current = &pcb[n];
+        //memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
       }
       break;
     }

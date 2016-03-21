@@ -10,6 +10,9 @@ int write( int fd, void* x, int n);
 // read n bytes from emulated UART into x
 int read ( int fd, void* x, size_t n);
 
+//readline from the emulated UART into x
+int readLine (int fd, void* x);
+
 // writes the given string to console and also replaces % with given arguments(in particular only ints)
 void printf(char* str,...);
 

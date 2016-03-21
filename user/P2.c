@@ -17,7 +17,7 @@ void P2() {
     for( uint32_t x = ( 1 << 8 ); x < ( 1 << 24 ); x++ ) {
       uint32_t r = weight( x );
       printf( "weight( %d ) = %d  Program 2\n", x, r );
-      fork();
+
     }
   }
 
