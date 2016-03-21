@@ -33,7 +33,7 @@ void Sh() {
           //if int then call exec(id) and schedule the process
           //else invalid command
         }
-        printf("\n exit branch \n");
+        printf("\n exec branch \n");
       }
     }
     printf(" %d\n",strlen(str));

@@ -17,8 +17,8 @@ int nDCP = 0;  //number of dynamically create processes
 void scheduler( ctx_t* ctx ) {
   if      ( current == &pcb[ 0 ] ) {
     memcpy( &pcb[ 0 ].ctx, ctx, sizeof( ctx_t ) );
-    memcpy( ctx, &pcb[ 0 ].ctx, sizeof( ctx_t ) );
-    current = &pcb[ 0 ];
+    memcpy( ctx, &pcb[ 1 ].ctx, sizeof( ctx_t ) );
+    current = &pcb[ 1 ];
   }
   else if ( current == &pcb[ 1 ] ) {
     memcpy( &pcb[ 1 ].ctx, ctx, sizeof( ctx_t ) );
@@ -95,7 +95,7 @@ void kernel_handler_irq(ctx_t* ctx) {
 
   if( id == GIC_SOURCE_TIMER0 ) {
     TIMER0->Timer1IntClr = 0x01;
-    scheduler( ctx );
+    //scheduler( ctx );
   }
 
   // Step 5: write the interrupt identifier to signal we're done.
