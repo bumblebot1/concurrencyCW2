@@ -148,12 +148,13 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       char y;
       while(1){
         char y = PL011_getc( UART0 );
-        if( y=='\n'){
+        if( y=='&'){
+          x[n] = '\0';
           break;
         }
-        x[n]=y;
+        x[n] = y;
+        PL011_putc( UART0, y);
         n++;
-        break;
       }
 
       ctx->gpr[ 0 ] = n;
