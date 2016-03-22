@@ -18,7 +18,7 @@
 #include "P0.h"
 #include "P1.h"
 #include "P2.h"
-#include "P4.h"
+#include "P3.h"
 #include "Sh.h"
 
 /* The kernel source code is made simpler by three type definitions:

@@ -55,14 +55,20 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
   pcb[ 1 ].pid      = 1;
   pcb[ 1 ].ctx.cpsr = 0x50;
-  pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_P1 );
-  pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
+  pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_P0 );
+  pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P0 );
 
   memset( &pcb[ 2 ], 0, sizeof( pcb_t ) );
-  pcb[ 2 ].pid      = 2;
+  pcb[ 2 ].pid      = 1;
   pcb[ 2 ].ctx.cpsr = 0x50;
-  pcb[ 2 ].ctx.pc   = ( uint32_t )( entry_P2 );
-  pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_P2 );
+  pcb[ 2 ].ctx.pc   = ( uint32_t )( entry_P1 );
+  pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
+
+  memset( &pcb[ 3 ], 0, sizeof( pcb_t ) );
+  pcb[ 3 ].pid      = 2;
+  pcb[ 3 ].ctx.cpsr = 0x50;
+  pcb[ 3 ].ctx.pc   = ( uint32_t )( entry_P2 );
+  pcb[ 3 ].ctx.sp   = ( uint32_t )(  &tos_P2 );
 
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
@@ -146,10 +152,13 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       char*  x  = ( char* )( ctx->gpr[ 1 ] );
       int n = 0;
       char y;
+      PL011_putc( UART0, '$');
+      PL011_putc( UART0, ' ');
       while(1){
         char y = PL011_getc( UART0 );
         if( y==13){
           x[n] = '\0';
+          PL011_putc( UART0, '\n');
           break;
         }
         x[n] = y;
@@ -161,6 +170,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
     case 0x04: { // fork()
+      int    pid = ( int   )( ctx->gpr[ 0 ] );
 
       if(nDCP<100){
         int n = nAP;
@@ -169,11 +179,13 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         pcb[ n ].pid = n;
         pcb[ n ].ctx.sp = (nDCP)*4*1000 + ((uint32_t)&boh);
         pcb[ n ].ctx.cpsr = 0x50;
-        pcb[ n ].ctx.pc   = (uint32_t) (entry_P4);
+        pcb[ n ].ctx.pc   = (uint32_t) (entry_P3);
         nAP++;
         //current = &pcb[n];
         //memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
       }
+
+      ctx->gpr[ 0 ] = -1;
       break;
     }
     default: {

@@ -67,7 +67,7 @@ void printf(char* str,...){
   n++;
   j=0;
 
-  char toWrite[n];
+  char toWrite[n+1];
   for(x=str;*x!='\0';x++){
     while( *x !='%'&& *x!='\0'){
       toWrite[j++]=*x;
@@ -123,6 +123,41 @@ int readLine(int fd, void* x){
 
 }
 
-int fork(){
-  asm volatile("svc #4");
+int fork(int pid){
+  int r;
+
+  asm volatile( "mov r0, %1 \n"
+                "svc #4     \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (pid)
+              : "r0");
+
+  return r;
+}
+
+int exec(int pid){
+  int r;
+
+  asm volatile( "mov r0, %1 \n"
+                "svc #5     \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (pid)
+              : "r0");
+
+  return r;
+}
+
+int exit(int pid){
+  int r;
+
+  asm volatile( "mov r0, %1 \n"
+                "svc #6     \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (pid)
+              : "r0");
+
+  return r;
 }
