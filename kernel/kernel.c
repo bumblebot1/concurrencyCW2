@@ -10,7 +10,7 @@
  */
 
 pcb_t pcb[ 1000 ], *current = NULL;
-uint32_t entry[1000];
+entry_t entry[1000];
 uint32_t nAP  = 0; //number of active proceses
 uint32_t nDCP = 0;  //number of dynamically create processes
 
@@ -72,28 +72,32 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 0 ].ctx.cpsr = 0x50;
   pcb[ 0 ].ctx.pc   = ( uint32_t )( entry_Sh );
   pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_Sh );
-  entry[ 0 ]        = ( uint32_t )( entry_Sh );
+  entry[ 0 ].pc     = ( uint32_t )( entry_Sh );
+  entry[ 0 ].active = 1;
 
   memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
   pcb[ 1 ].pid      = 1;
   pcb[ 1 ].ctx.cpsr = 0x50;
   pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_P0 );
   pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P0 );
-  entry[ 1 ]        = ( uint32_t )( entry_P0 );
+  entry[ 1 ].pc     = ( uint32_t )( entry_P0 );
+  entry[ 1 ].active = 1;
 
   memset( &pcb[ 2 ], 0, sizeof( pcb_t ) );
   pcb[ 2 ].pid      = 1;
   pcb[ 2 ].ctx.cpsr = 0x50;
   pcb[ 2 ].ctx.pc   = ( uint32_t )( entry_P1 );
   pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
-  entry[ 2 ]        = ( uint32_t )( entry_P1 );
+  entry[ 2 ].pc     = ( uint32_t )( entry_P1 );
+  entry[ 2 ].active = 1;
 
   memset( &pcb[ 3 ], 0, sizeof( pcb_t ) );
   pcb[ 3 ].pid      = 2;
   pcb[ 3 ].ctx.cpsr = 0x50;
   pcb[ 3 ].ctx.pc   = ( uint32_t )( entry_P2 );
   pcb[ 3 ].ctx.sp   = ( uint32_t )(  &tos_P2 );
-  entry[ 3 ]        = ( uint32_t )( entry_P2 );
+  entry[ 3 ].pc     = ( uint32_t )( entry_P2 );
+  entry[ 3 ].active = 1;
 
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
@@ -207,8 +211,9 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         pcb[ n ].pid      = n;
         pcb[ n ].ctx.sp   = (nDCP)*4096 + ((uint32_t)&boh);
         pcb[ n ].ctx.cpsr = 0x50;
-        pcb[ n ].ctx.pc   = entry[ pid ];
-        entry[ n ]        = pcb[ n ].ctx.pc;
+        pcb[ n ].ctx.pc   = entry[ pid ].pc;
+        entry[ n ].pc     = pcb[ n ].ctx.pc;
+        entry[ n ].active = 1;
         nAP++;
         //current = &pcb[n];
         //memcpy( ctx, &current->ctx, sizeof( ctx_t ) );

@@ -42,5 +42,10 @@ typedef struct {
   ctx_t ctx;
 } pcb_t;
 
+typedef struct {
+  uint32_t pc;
+  uint8_t active;
+} entry_t;
+
 extern uint32_t boh;
 #endif
