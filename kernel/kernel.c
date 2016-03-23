@@ -18,17 +18,17 @@ uint32_t nDCP = 0;  //number of dynamically create processes
 void scheduler( ctx_t* ctx ) {
 
   if(nAP==6){
-    if      ( current == &pcb[ 4 ] ) {
+    if      ( current == &pcb[ 4 ] && entry[ 4 ].active == 1) {
       memcpy( &pcb[ 4 ].ctx, ctx, sizeof( ctx_t ) );
       memcpy( ctx, &pcb[ 5 ].ctx, sizeof( ctx_t ) );
       current = &pcb[ 5 ];
     }
-    else if ( current == &pcb[ 5 ] ) {
+    else if ( current == &pcb[ 5 ] && entry[ 5 ].active == 1 ) {
       memcpy( &pcb[ 5 ].ctx, ctx, sizeof( ctx_t ) );
       memcpy( ctx, &pcb[ 4 ].ctx, sizeof( ctx_t ) );
       current = &pcb[ 4 ];
     }
-    else if ( current == &pcb[ 0 ] ) {
+    else if ( current == &pcb[ 0 ] && entry[ 0 ].active == 1 ) {
       memcpy( &pcb[ 0 ].ctx, ctx, sizeof( ctx_t ) );
       memcpy( ctx, &pcb[ 4 ].ctx, sizeof( ctx_t ) );
       current = &pcb[ 4 ];
@@ -198,13 +198,15 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       ctx->gpr[ 0 ] = n;
       break;
     }
-    case 0x04: { // fork()
+    case 0x04: { // fork(pid)
       uint32_t    pid    = ( uint32_t   )( ctx->gpr[ 0 ] );
       uint32_t currentID = (*current).pid;
-      uint32_t     n     = nAP;
+      uint32_t     n     = 0;
+      while( entry[n].active==1 ){
+        n++;
+      }
 
-      if(nDCP<999){
-
+      if(n<1000){
 
         nDCP++;
         memset( &pcb[ n ], 0, sizeof( pcb_t ) );
@@ -221,6 +223,11 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
 
       ctx->gpr[ 0 ] = n;
       break;
+    }
+    case 0x05: { // exit(pid)
+      uint32_t    pid     = ( uint32_t   )( ctx->gpr[ 0 ] );
+      entry[ pid ].active = 0;
+      nAP--;
     }
     default: {
       break;

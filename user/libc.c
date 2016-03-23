@@ -136,11 +136,11 @@ int fork(int pid){
   return r;
 }
 
-int exec(int pid){
+int exit(int pid){
   int r;
 
   asm volatile( "mov r0, %1 \n"
-                "svc #5     \n"
+                "svc #5    \n"
                 "mov %0, r0 \n"
               : "=r" (r)
               : "r" (pid)
@@ -149,7 +149,7 @@ int exec(int pid){
   return r;
 }
 
-int exit(int pid){
+int exec(int pid){
   int r;
 
   asm volatile( "mov r0, %1 \n"

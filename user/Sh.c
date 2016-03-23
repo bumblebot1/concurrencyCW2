@@ -38,7 +38,8 @@ void Sh() {
             if(token==NULL){
               //execute the fork here
               int pid = parseInt(args);
-              fork(pid);
+              pid = fork(pid);
+              printf("%d\n",pid);
             }
             else
               printf("Too many arguments for your fork command!\n");
@@ -64,7 +65,7 @@ void Sh() {
               //execute the exit here
               int pid = parseInt(args);
               printf("%d\n",pid);
-              //exit(pid)
+              exit(pid);
             }
             else
               printf("Too many arguments for your exit command!\n");
