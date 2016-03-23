@@ -10,11 +10,31 @@
  */
 
 pcb_t pcb[ 1000 ], *current = NULL;
-int nAP  = 0; //number of active proceses
-int nDCP = 0;  //number of dynamically create processes
+uint32_t entry[1000];
+uint32_t nAP  = 0; //number of active proceses
+uint32_t nDCP = 0;  //number of dynamically create processes
 
 
 void scheduler( ctx_t* ctx ) {
+
+  if(nAP==6){
+    if      ( current == &pcb[ 4 ] ) {
+      memcpy( &pcb[ 4 ].ctx, ctx, sizeof( ctx_t ) );
+      memcpy( ctx, &pcb[ 5 ].ctx, sizeof( ctx_t ) );
+      current = &pcb[ 5 ];
+    }
+    else if ( current == &pcb[ 5 ] ) {
+      memcpy( &pcb[ 5 ].ctx, ctx, sizeof( ctx_t ) );
+      memcpy( ctx, &pcb[ 4 ].ctx, sizeof( ctx_t ) );
+      current = &pcb[ 4 ];
+    }
+    else if ( current == &pcb[ 0 ] ) {
+      memcpy( &pcb[ 0 ].ctx, ctx, sizeof( ctx_t ) );
+      memcpy( ctx, &pcb[ 4 ].ctx, sizeof( ctx_t ) );
+      current = &pcb[ 4 ];
+    }
+  }
+  /*
   if      ( current == &pcb[ 0 ] ) {
     memcpy( &pcb[ 0 ].ctx, ctx, sizeof( ctx_t ) );
     memcpy( ctx, &pcb[ 1 ].ctx, sizeof( ctx_t ) );
@@ -35,6 +55,7 @@ void scheduler( ctx_t* ctx ) {
     memcpy( ctx, &pcb[ 0 ].ctx, sizeof( ctx_t ) );
     current = &pcb[ 0 ];
   }
+  */
 }
 
 void kernel_handler_rst( ctx_t* ctx              ) {
@@ -51,24 +72,28 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 0 ].ctx.cpsr = 0x50;
   pcb[ 0 ].ctx.pc   = ( uint32_t )( entry_Sh );
   pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_Sh );
+  entry[ 0 ]        = ( uint32_t )( entry_Sh );
 
   memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
   pcb[ 1 ].pid      = 1;
   pcb[ 1 ].ctx.cpsr = 0x50;
   pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_P0 );
   pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P0 );
+  entry[ 1 ]        = ( uint32_t )( entry_P0 );
 
   memset( &pcb[ 2 ], 0, sizeof( pcb_t ) );
   pcb[ 2 ].pid      = 1;
   pcb[ 2 ].ctx.cpsr = 0x50;
   pcb[ 2 ].ctx.pc   = ( uint32_t )( entry_P1 );
   pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
+  entry[ 2 ]        = ( uint32_t )( entry_P1 );
 
   memset( &pcb[ 3 ], 0, sizeof( pcb_t ) );
   pcb[ 3 ].pid      = 2;
   pcb[ 3 ].ctx.cpsr = 0x50;
   pcb[ 3 ].ctx.pc   = ( uint32_t )( entry_P2 );
   pcb[ 3 ].ctx.sp   = ( uint32_t )(  &tos_P2 );
+  entry[ 3 ]        = ( uint32_t )( entry_P2 );
 
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
@@ -101,7 +126,7 @@ void kernel_handler_irq(ctx_t* ctx) {
 
   if( id == GIC_SOURCE_TIMER0 ) {
     TIMER0->Timer1IntClr = 0x01;
-    //scheduler( ctx );
+    scheduler( ctx );
   }
 
   // Step 5: write the interrupt identifier to signal we're done.
@@ -124,11 +149,11 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
     case 0x01 : { // write( fd, x, n )
-      int   fd = ( int   )( ctx->gpr[ 0 ] );
-      char*  x = ( char* )( ctx->gpr[ 1 ] );
-      int    n = ( int   )( ctx->gpr[ 2 ] );
+      uint32_t   fd = ( uint32_t   )( ctx->gpr[ 0 ] );
+      char*  x      = ( char* )( ctx->gpr[ 1 ] );
+      uint32_t    n = ( uint32_t   )( ctx->gpr[ 2 ] );
 
-      for( int i = 0; i < n; i++ ) {
+      for( uint32_t i = 0; i < n; i++ ) {
         PL011_putc( UART0, *x++ );
       }
 
@@ -137,20 +162,20 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
 
     case 0x02: { // read(fd, x, n )
-      int    fd = ( int   )( ctx->gpr[ 0 ] );
-      char*  x  = ( char* )( ctx->gpr[ 1 ] );
-      int    n  = ( int   )( ctx->gpr[ 2 ] );
+      uint32_t    fd = ( uint32_t   )( ctx->gpr[ 0 ] );
+      char*  x       = ( char* )( ctx->gpr[ 1 ] );
+      uint32_t    n  = ( uint32_t   )( ctx->gpr[ 2 ] );
 
-      for( int i=0; i < n; i++){
+      for( uint32_t i=0; i < n; i++){
         x[i] = PL011_getc( UART0 );
       }
 
       break;
     }
     case 0x03: { // readLine(fd, x)
-      int    fd = ( int   )( ctx->gpr[ 0 ] );
-      char*  x  = ( char* )( ctx->gpr[ 1 ] );
-      int n = 0;
+      uint32_t    fd = ( uint32_t   )( ctx->gpr[ 0 ] );
+      char*  x       = ( char* )( ctx->gpr[ 1 ] );
+      uint32_t     n = 0;
       char y;
       PL011_putc( UART0, '$');
       PL011_putc( UART0, ' ');
@@ -170,22 +195,26 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
     case 0x04: { // fork()
-      int    pid = ( int   )( ctx->gpr[ 0 ] );
+      uint32_t    pid    = ( uint32_t   )( ctx->gpr[ 0 ] );
+      uint32_t currentID = (*current).pid;
+      uint32_t     n     = nAP;
 
-      if(nDCP<100){
-        int n = nAP;
+      if(nDCP<999){
+
+
         nDCP++;
         memset( &pcb[ n ], 0, sizeof( pcb_t ) );
-        pcb[ n ].pid = n;
-        pcb[ n ].ctx.sp = (nDCP)*4096 + ((uint32_t)&boh);
+        pcb[ n ].pid      = n;
+        pcb[ n ].ctx.sp   = (nDCP)*4096 + ((uint32_t)&boh);
         pcb[ n ].ctx.cpsr = 0x50;
-        pcb[ n ].ctx.pc   = (uint32_t) (entry_P3);
+        pcb[ n ].ctx.pc   = entry[ pid ];
+        entry[ n ]        = pcb[ n ].ctx.pc;
         nAP++;
         //current = &pcb[n];
         //memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
       }
 
-      ctx->gpr[ 0 ] = -1;
+      ctx->gpr[ 0 ] = n;
       break;
     }
     default: {
