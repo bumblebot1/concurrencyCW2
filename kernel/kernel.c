@@ -157,8 +157,11 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       char*  x      = ( char* )( ctx->gpr[ 1 ] );
       uint32_t    n = ( uint32_t   )( ctx->gpr[ 2 ] );
 
+      PL011_t* stream = getStream(fd);
       for( uint32_t i = 0; i < n; i++ ) {
-        PL011_putc( UART0, *x++ );
+        if( fd==0 ){
+          PL011_putc( stream, *x++ );
+        }
       }
 
       ctx->gpr[ 0 ] = n;
@@ -169,9 +172,9 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       uint32_t    fd = ( uint32_t   )( ctx->gpr[ 0 ] );
       char*  x       = ( char* )( ctx->gpr[ 1 ] );
       uint32_t    n  = ( uint32_t   )( ctx->gpr[ 2 ] );
-
+      PL011_t* stream = getStream(fd);
       for( uint32_t i=0; i < n; i++){
-        x[i] = PL011_getc( UART0 );
+        x[i] = PL011_getc( stream );
       }
 
       break;
@@ -181,17 +184,18 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       char*  x       = ( char* )( ctx->gpr[ 1 ] );
       uint32_t     n = 0;
       char y;
-      PL011_putc( UART0, '$');
-      PL011_putc( UART0, ' ');
+      PL011_t* stream = getStream(fd);
+      PL011_putc( stream, '$');
+      PL011_putc( stream, ' ');
       while(1){
-        char y = PL011_getc( UART0 );
+        char y = PL011_getc( stream );
         if( y==13){
           x[n] = '\0';
-          PL011_putc( UART0, '\n');
+          PL011_putc( stream, '\n');
           break;
         }
         x[n] = y;
-        PL011_putc( UART0, y);
+        PL011_putc( stream, y);
         n++;
       }
 
@@ -228,6 +232,10 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       uint32_t    pid     = ( uint32_t   )( ctx->gpr[ 0 ] );
       entry[ pid ].active = 0;
       nAP--;
+      break;
+    }
+    case 0x06: { // exec(pid)
+      break;
     }
     default: {
       break;

@@ -48,4 +48,20 @@ typedef struct {
 } entry_t;
 
 extern uint32_t boh;
+
+PL011_t* getStream(uint32_t fd){
+  switch (fd) {
+    case 0:
+      return UART0;
+    case 1:
+      return UART1;
+    case 2:
+      return UART2;
+    case 3:
+      return UART3;
+    default:
+      return UART0;
+  }
+}
+
 #endif
