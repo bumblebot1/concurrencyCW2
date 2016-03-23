@@ -1,7 +1,7 @@
 #include "Sh.h"
 
-int isNumber(char* str){
-  for(int i = 0; i <= strlen(str); i++){
+uint32_t isNumber(char* str){
+  for(uint32_t i = 0; i <= strlen(str); i++){
     if( str[i] =='\0' )
       return 1;
     if( str[i]-'0'< 0 || str[i]-'0' > 9)
@@ -10,11 +10,11 @@ int isNumber(char* str){
   return 1;
 }
 
-int parseInt(char* str){
-  int num = 0;
-  for(int i = 0; i <= strlen(str); i++ ){
+uint32_t parseInt(char* str){
+  uint32_t num = 0;
+  for(uint32_t i = 0; i <= strlen(str); i++ ){
     if(str[i]!='\0'){
-      int val = str[i]-'0';
+      uint32_t val = str[i]-'0';
       num = num*10 + val;
     }
   }
@@ -24,9 +24,9 @@ int parseInt(char* str){
 void Sh() {
   while( 1 ) {
     char str[1000];
-    int x = readLine(0,str);
+    uint32_t x = readLine(0,str);
     char* token = strtok(str," ");
-    int args = 0;
+    uint32_t args = 0;
     if(token!=NULL){
       if(strcmp(token,"fork")==0){
         token = strtok(NULL," ");
@@ -37,9 +37,9 @@ void Sh() {
             token = strtok(NULL," ");
             if(token==NULL){
               //execute the fork here
-              int pid = parseInt(args);
+              uint32_t pid = parseInt(args);
               pid = fork(pid);
-              printf("%d\n",pid);
+              printf("%d",pid);
             }
             else
               printf("Too many arguments for your fork command!\n");
@@ -63,8 +63,8 @@ void Sh() {
             token = strtok(NULL," ");
             if(token==NULL){
               //execute the exit here
-              int pid = parseInt(args);
-              printf("%d\n",pid);
+              uint32_t pid = parseInt(args);
+              printf("%d",pid);
               exit(pid);
             }
             else
@@ -89,8 +89,8 @@ void Sh() {
             token = strtok(NULL," ");
             if(token==NULL){
               //execute the exec here
-              int pid = parseInt(args);
-              printf("%d\n",pid);
+              uint32_t pid = parseInt(args);
+              printf("%d",pid);
               //exec(pid)
             }
             else

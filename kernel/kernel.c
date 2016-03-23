@@ -186,6 +186,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       irq_enable();
       char y;
       PL011_t* stream = getStream(fd);
+      PL011_putc( stream, '\n');
       PL011_putc( stream, '$');
       PL011_putc( stream, ' ');
       while(1){

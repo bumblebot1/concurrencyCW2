@@ -1,6 +1,6 @@
 #include "P0.h"
 
-int is_prime( uint32_t x ) {
+uint32_t is_prime( uint32_t x ) {
   if ( !( x & 1 ) || ( x < 2 ) ) {
     return ( x == 2 );
   }
@@ -15,13 +15,13 @@ int is_prime( uint32_t x ) {
 }
 
 void P0() {
-  int x = 0;
+  uint32_t x = 0;
 
   while( 1 ) {
     // test whether each x for 2^8 < x < 2^24 is prime or not
 
     for( uint32_t x = ( 1 << 8 ); x < ( 1 << 24 ); x++ ) {
-      int r = is_prime( x );
+      uint32_t r = is_prime( x );
       printf( "is_prime( %d ) = %d  Program 0\n", x, r );
     }
   }
