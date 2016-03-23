@@ -177,7 +177,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         nDCP++;
         memset( &pcb[ n ], 0, sizeof( pcb_t ) );
         pcb[ n ].pid = n;
-        pcb[ n ].ctx.sp = (nDCP)*4*1000 + ((uint32_t)&boh);
+        pcb[ n ].ctx.sp = (nDCP)*4096 + ((uint32_t)&boh);
         pcb[ n ].ctx.cpsr = 0x50;
         pcb[ n ].ctx.pc   = (uint32_t) (entry_P3);
         nAP++;
