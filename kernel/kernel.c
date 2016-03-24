@@ -156,7 +156,6 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       uint32_t    fd = ( uint32_t   )( ctx->gpr[ 0 ] );
       char*  x       = ( char* )( ctx->gpr[ 1 ] );
       uint32_t     n = 0;
-      //irq_enable();
       char y;
       PL011_t* stream = getStream(fd);
       while(1){
