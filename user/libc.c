@@ -109,17 +109,17 @@ int read( int fd, void* x, size_t n ){
 }
 
 int readLine(int fd, void* x){
-    int r;
+  int r;
 
-    asm volatile( "mov r0, %1 \n"
-                  "mov r1, %2 \n"
-                  "svc #3     \n"
-                  "mov %0, r0 \n"
-                : "=r" (r)
-                : "r" (fd), "r" (x)
-                : "r0", "r1");
+  asm volatile( "mov r0, %1 \n"
+                "mov r1, %2 \n"
+                "svc #3     \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (fd), "r" (x)
+              : "r0", "r1");
 
-    return r;
+  return r;
 
 }
 

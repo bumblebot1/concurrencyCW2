@@ -14,6 +14,7 @@ entry_t entry[1000];
 uint32_t nAP  = 0; //number of active proceses
 uint32_t nDCP = 0;  //number of dynamically create processes
 uint32_t next[1000];
+uint32_t slice = 1;
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -103,7 +104,9 @@ void kernel_handler_irq(ctx_t* ctx) {
 
   if( id == GIC_SOURCE_TIMER0 ) {
     TIMER0->Timer1IntClr = 0x01;
-    rrScheduler( ctx );
+    if(slice%4 == 0)
+      rrScheduler( ctx );
+    slice++;
   }
 
   // Step 5: write the interrupt identifier to signal we're done.
@@ -177,7 +180,11 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       uint32_t    pid    = ( uint32_t   )( ctx->gpr[ 0 ] );
       uint32_t currentID = (*current).pid;
       uint32_t     n     = 0;
-      while( entry[n].active==1 ){
+      if(!entry[pid].active){
+        ctx->gpr[ 0 ] = -1;
+        break;
+      }
+      while( entry[n].active ){
         n++;
       }
 
@@ -207,7 +214,12 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
     case 0x05: { // exit(pid)
       uint32_t    pid     = ( uint32_t   )( ctx->gpr[ 0 ] );
-      entry[ pid ].active = 0;
+      if( entry[ pid ].active )
+        entry[ pid ].active = 0;
+      else{
+        ctx->gpr[ 0 ] = -1;
+        break;
+      }
       nAP--;
       for(uint32_t i =0; i <= 999; i++){
         if(next[ i ] == pid){
@@ -215,6 +227,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
           next[ pid ] = 1001;
         }
       }
+      ctx->gpr[ 0 ] = pid;
       break;
     }
     case 0x06: { // exec(pid)

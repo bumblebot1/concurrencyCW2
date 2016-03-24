@@ -1,6 +1,6 @@
 #include "Sh.h"
 
-uint32_t isNumber(char* str){
+uint8_t isNumber(char* str){
   for(uint32_t i = 0; i <= strlen(str); i++){
     if( str[i] =='\0' )
       return 1;
@@ -25,7 +25,7 @@ void Sh() {
   while( 1 ) {
     char str[1000];
     printf("$ ");
-    uint32_t x = readLine(0,str);
+    int x = readLine(0,str);
     char* token = strtok(str," ");
     uint32_t args = 0;
     if(token!=NULL){
@@ -40,6 +40,9 @@ void Sh() {
               //execute the fork here
               uint32_t pid = parseInt(args);
               pid = fork(pid);
+              if(pid == -1){
+                printf("Fork failed!Maybe you tried forking a non existing process?\n");
+              }
               printf("%d\n",pid);
             }
             else
@@ -65,8 +68,11 @@ void Sh() {
             if(token==NULL){
               //execute the exit here
               uint32_t pid = parseInt(args);
-              printf("%d",pid);
-              exit(pid);
+              int res = exit(pid);
+              if(res == -1){
+                printf("Exit has failed!Maybe your tried exiting a non existing process?\n");
+              }
+              printf("%d",res);
             }
             else
               printf("Too many arguments for your exit command!\n");
