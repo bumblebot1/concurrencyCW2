@@ -35,18 +35,33 @@ void Sh() {
           char args[strlen(token)];
           strcpy(args,token);
           if(isNumber(args)==1){
+            uint32_t pid = parseInt(args);
             token = strtok(NULL," ");
             if(token==NULL){
               //execute the fork here
-              uint32_t pid = parseInt(args);
-              pid = fork(pid);
+              pid = fork(pid,50);
               if(pid == -1){
                 printf("Fork failed!Maybe you tried forking a non existing process?\n");
               }
               printf("%d\n",pid);
             }
-            else
-              printf("Too many arguments for your fork command!\n");
+            else{
+              strcpy(args,token);
+              if(isNumber(args)==1){
+                token = strtok(NULL," ");
+                if(token==NULL){
+                  uint32_t weight = parseInt(args);
+                  pid = fork(pid,weight);
+                  if(pid == -1){
+                    printf("Fork failed!Maybe you tried forking a non existing process?\n");
+                  }
+                  printf("%d\n",pid);
+                }
+                else{
+                  printf("Too many arguments for your fork command!\n");
+                }
+              }
+            }
           }
           else{
             printf("The pid you gave in your fork is not a number!\n");

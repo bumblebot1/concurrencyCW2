@@ -123,14 +123,15 @@ int readLine(int fd, void* x){
 
 }
 
-int fork(int pid){
+int fork(int pid,uint32_t wt){
   int r;
 
   asm volatile( "mov r0, %1 \n"
+                "mov r1, %2 \n"
                 "svc #4     \n"
                 "mov %0, r0 \n"
               : "=r" (r)
-              : "r" (pid)
+              : "r" (pid), "r"(wt)
               : "r0");
 
   return r;

@@ -16,7 +16,7 @@ int readLine (int fd, void* x);
 // writes the given string to console and also replaces % with given arguments(in particular only ints)
 void printf (char* str,...);
 
-int fork (int pid);
+int fork (int pid, uint32_t wt);
 
 int exec (int pid);
 

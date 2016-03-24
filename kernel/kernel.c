@@ -22,6 +22,7 @@ void rrScheduler( ctx_t* ctx ) {
   memcpy( &pcb[ pid ].ctx, ctx, sizeof( ctx_t ) );
   memcpy( ctx, &pcb[ nxt ].ctx, sizeof( ctx_t ) );
   current = &pcb[ nxt ];
+  PL011_puth(UART0,entry[nxt].wt);
 }
 
 void kernel_handler_rst( ctx_t* ctx              ) {
@@ -44,7 +45,8 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_Sh );
   entry[ 0 ].pc     = ( uint32_t )( entry_Sh );
   entry[ 0 ].active = 1;
-  next[ 0 ] = 1;
+  entry[ 0 ].wt     = 100;
+  next[ 0 ]         = 1;
 
   memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
   pcb[ 1 ].pid      = 1;
@@ -53,6 +55,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P0 );
   entry[ 1 ].pc     = ( uint32_t )( entry_P0 );
   entry[ 1 ].active = 1;
+  entry[ 1 ].wt     = 50;
   next[ 1 ] = 2;
 
   memset( &pcb[ 2 ], 0, sizeof( pcb_t ) );
@@ -62,7 +65,8 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
   entry[ 2 ].pc     = ( uint32_t )( entry_P1 );
   entry[ 2 ].active = 1;
-  next[ 2 ] = 3;
+  entry[ 2 ].wt     = 50;
+  next[ 2 ]         = 3;
 
   memset( &pcb[ 3 ], 0, sizeof( pcb_t ) );
   pcb[ 3 ].pid      = 3;
@@ -71,7 +75,8 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 3 ].ctx.sp   = ( uint32_t )(  &tos_P2 );
   entry[ 3 ].pc     = ( uint32_t )( entry_P2 );
   entry[ 3 ].active = 1;
-  next[ 3 ] = 0;
+  entry[ 3 ].wt     = 50;
+  next[ 3 ]         = 0;
 
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
@@ -176,8 +181,9 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       ctx->gpr[ 0 ] = n;
       break;
     }
-    case 0x04: { // fork(pid)
+    case 0x04: { // fork(pid,weight)
       uint32_t    pid    = ( uint32_t   )( ctx->gpr[ 0 ] );
+      uint32_t     wt    = ( uint32_t   )( ctx->gpr[ 1 ] );
       uint32_t currentID = (*current).pid;
       uint32_t     n     = 0;
       if(!entry[pid].active){
@@ -197,6 +203,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         pcb[ n ].ctx.cpsr = 0x50;
         pcb[ n ].ctx.pc   = entry[ pid ].pc;
         entry[ n ].pc     = pcb[ n ].ctx.pc;
+        entry[ n ].wt     = wt;
         entry[ n ].active = 1;
         nAP++;
         for(uint32_t i = 0; i <= 999; i++){
