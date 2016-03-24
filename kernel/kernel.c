@@ -13,49 +13,14 @@ pcb_t pcb[ 1000 ], *current = NULL;
 entry_t entry[1000];
 uint32_t nAP  = 0; //number of active proceses
 uint32_t nDCP = 0;  //number of dynamically create processes
+uint32_t next[1000];
 
-
-void scheduler( ctx_t* ctx ) {
-
-  if(nAP==6){
-    if      ( current == &pcb[ 4 ] && entry[ 4 ].active == 1) {
-      memcpy( &pcb[ 4 ].ctx, ctx, sizeof( ctx_t ) );
-      memcpy( ctx, &pcb[ 5 ].ctx, sizeof( ctx_t ) );
-      current = &pcb[ 5 ];
-    }
-    else if ( current == &pcb[ 5 ] && entry[ 5 ].active == 1 ) {
-      memcpy( &pcb[ 5 ].ctx, ctx, sizeof( ctx_t ) );
-      memcpy( ctx, &pcb[ 4 ].ctx, sizeof( ctx_t ) );
-      current = &pcb[ 4 ];
-    }
-    else if ( current == &pcb[ 0 ] && entry[ 0 ].active == 1 ) {
-      memcpy( &pcb[ 0 ].ctx, ctx, sizeof( ctx_t ) );
-      memcpy( ctx, &pcb[ 4 ].ctx, sizeof( ctx_t ) );
-      current = &pcb[ 4 ];
-    }
-  }
-  /*
-  if      ( current == &pcb[ 0 ] ) {
-    memcpy( &pcb[ 0 ].ctx, ctx, sizeof( ctx_t ) );
-    memcpy( ctx, &pcb[ 1 ].ctx, sizeof( ctx_t ) );
-    current = &pcb[ 1 ];
-  }
-  else if ( current == &pcb[ 1 ] ) {
-    memcpy( &pcb[ 1 ].ctx, ctx, sizeof( ctx_t ) );
-    memcpy( ctx, &pcb[ 2 ].ctx, sizeof( ctx_t ) );
-    current = &pcb[ 2 ];
-  }
-  else if ( current == &pcb[ 2 ] ) {
-    memcpy( &pcb[ 2 ].ctx, ctx, sizeof( ctx_t ) );
-    memcpy( ctx, &pcb[ 3 ].ctx, sizeof( ctx_t ) );
-    current = &pcb[ 3 ];
-  }
-  else if ( current == &pcb[ 3 ] ) {
-    memcpy( &pcb[ 3 ].ctx, ctx, sizeof( ctx_t ) );
-    memcpy( ctx, &pcb[ 0 ].ctx, sizeof( ctx_t ) );
-    current = &pcb[ 0 ];
-  }
-  */
+void rrScheduler( ctx_t* ctx ) {
+  uint32_t pid = (*current).pid;
+  uint32_t nxt = next[ pid ];
+  memcpy( &pcb[ pid ].ctx, ctx, sizeof( ctx_t ) );
+  memcpy( ctx, &pcb[ nxt ].ctx, sizeof( ctx_t ) );
+  current = &pcb[ nxt ];
 }
 
 void kernel_handler_rst( ctx_t* ctx              ) {
@@ -67,6 +32,10 @@ void kernel_handler_rst( ctx_t* ctx              ) {
    * - the PC and SP values matche the entry point and top of stack.
    */
 
+  for(uint32_t i=0;i<=999;i++){
+    next[i] = 1001;
+  }
+
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
   pcb[ 0 ].pid      = 0;
   pcb[ 0 ].ctx.cpsr = 0x50;
@@ -74,6 +43,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_Sh );
   entry[ 0 ].pc     = ( uint32_t )( entry_Sh );
   entry[ 0 ].active = 1;
+  next[ 0 ] = 1;
 
   memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
   pcb[ 1 ].pid      = 1;
@@ -82,22 +52,25 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P0 );
   entry[ 1 ].pc     = ( uint32_t )( entry_P0 );
   entry[ 1 ].active = 1;
+  next[ 1 ] = 2;
 
   memset( &pcb[ 2 ], 0, sizeof( pcb_t ) );
-  pcb[ 2 ].pid      = 1;
+  pcb[ 2 ].pid      = 2;
   pcb[ 2 ].ctx.cpsr = 0x50;
   pcb[ 2 ].ctx.pc   = ( uint32_t )( entry_P1 );
   pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
   entry[ 2 ].pc     = ( uint32_t )( entry_P1 );
   entry[ 2 ].active = 1;
+  next[ 2 ] = 3;
 
   memset( &pcb[ 3 ], 0, sizeof( pcb_t ) );
-  pcb[ 3 ].pid      = 2;
+  pcb[ 3 ].pid      = 3;
   pcb[ 3 ].ctx.cpsr = 0x50;
   pcb[ 3 ].ctx.pc   = ( uint32_t )( entry_P2 );
   pcb[ 3 ].ctx.sp   = ( uint32_t )(  &tos_P2 );
   entry[ 3 ].pc     = ( uint32_t )( entry_P2 );
   entry[ 3 ].active = 1;
+  next[ 3 ] = 0;
 
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
@@ -130,7 +103,7 @@ void kernel_handler_irq(ctx_t* ctx) {
 
   if( id == GIC_SOURCE_TIMER0 ) {
     TIMER0->Timer1IntClr = 0x01;
-    scheduler( ctx );
+    rrScheduler( ctx );
   }
 
   // Step 5: write the interrupt identifier to signal we're done.
@@ -149,7 +122,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
 
   switch( id ) {
     case 0x00 : { // yield()
-      scheduler( ctx );
+      //scheduler( ctx );
       break;
     }
     case 0x01 : { // write( fd, x, n )
@@ -183,7 +156,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       uint32_t    fd = ( uint32_t   )( ctx->gpr[ 0 ] );
       char*  x       = ( char* )( ctx->gpr[ 1 ] );
       uint32_t     n = 0;
-      irq_enable();
+      //irq_enable();
       char y;
       PL011_t* stream = getStream(fd);
       while(1){
@@ -220,6 +193,12 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         entry[ n ].pc     = pcb[ n ].ctx.pc;
         entry[ n ].active = 1;
         nAP++;
+        for(uint32_t i = 0; i <= 999; i++){
+          if(next[ i ] == 0){
+            next[ i ] = n;
+            next[ n ] = 0;
+          }
+        }
         //current = &pcb[n];
         //memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
       }
@@ -231,6 +210,12 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       uint32_t    pid     = ( uint32_t   )( ctx->gpr[ 0 ] );
       entry[ pid ].active = 0;
       nAP--;
+      for(uint32_t i =0; i <= 999; i++){
+        if(next[ i ] == pid){
+          next[ i ] = next[ pid ];
+          next[ pid ] = 1001;
+        }
+      }
       break;
     }
     case 0x06: { // exec(pid)
