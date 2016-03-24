@@ -24,6 +24,7 @@ uint32_t parseInt(char* str){
 void Sh() {
   while( 1 ) {
     char str[1000];
+    printf("$ ");
     uint32_t x = readLine(0,str);
     char* token = strtok(str," ");
     uint32_t args = 0;
@@ -39,7 +40,7 @@ void Sh() {
               //execute the fork here
               uint32_t pid = parseInt(args);
               pid = fork(pid);
-              printf("%d",pid);
+              printf("%d\n",pid);
             }
             else
               printf("Too many arguments for your fork command!\n");
