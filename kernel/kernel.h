@@ -45,8 +45,12 @@ typedef struct {
 typedef struct {
   uint32_t pc;
   uint8_t active;
-  uint32_t wt;
 } entry_t;
+
+typedef struct {
+  uint32_t wt;
+  pid_t pid;
+} heap_t;
 
 extern uint32_t boh;
 

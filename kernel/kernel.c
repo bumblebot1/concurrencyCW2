@@ -10,11 +10,13 @@
  */
 
 pcb_t pcb[ 1000 ], *current = NULL;
-entry_t entry[1000];
+entry_t entry[ 1000 ];
+heap_t heap[ 1001 ];
 uint32_t nAP  = 0; //number of active proceses
 uint32_t nDCP = 0;  //number of dynamically create processes
 uint32_t next[1000];
 uint32_t slice = 1;
+heap_t res;
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -24,6 +26,73 @@ void rrScheduler( ctx_t* ctx ) {
   current = &pcb[ nxt ];
 }
 
+void heap_decreaseKey(pid_t pid, uint32_t wt){
+  uint32_t i;
+  for(i=1; i<=1000; i++){
+    if( heap[ i ].pid == pid)
+      break;
+  }
+  if(heap[i].wt < wt)
+    return;
+  else{
+    heap[i].wt = wt;
+    uint32_t parent = i/2;
+    while(1 <= parent && heap[ parent ].wt > heap[ i ].wt){
+      heap_t aux = heap[ parent ];
+      heap[ parent ] = heap[ i ];
+      heap[ i ] = aux;
+      i = parent;
+      parent = i/2;
+    }
+  }
+}
+
+void heap_insert(pid_t pid, uint32_t wt ){
+  uint32_t i;
+  for(i=0; i<=999; i++){
+    if( heap[i].pid == 1001 )
+      break;
+  }
+  heap[ i ].wt  = wt;
+  heap[ i ].pid = pid;
+  heap_decreaseKey(pid,wt);
+}
+
+heap_t heap_extractMin(){
+  heap_t toReturn = heap[1];
+  heap[ 1 ] = heap[ nAP ];
+  heap[ nAP ].wt  = 1001;
+  heap[ nAP ].pid = 1001;
+  uint32_t i = 1;
+  while(heap[ i ].wt > heap[ 2*i ].wt || heap[ i ].wt > heap[ 2*i+1 ].wt){
+    uint32_t min ;
+    if(heap[ 2*i ].wt > heap[ 2*i+1 ].wt)
+      min = 2*i+1;
+    else
+      min = 2*i;
+    heap_t aux  = heap[i];
+    heap[ i ]   = heap[ min ];
+    heap[ min ] = aux;
+    i = min;
+  }
+  return toReturn;
+}
+
+void heap_remove(pid_t pid){
+  heap_decreaseKey(pid,0);
+  heap_extractMin();
+}
+
+void prScheduler(ctx_t* ctx){
+  uint32_t pid = (*current).pid;
+  heap_t min = heap_extractMin();
+  uint32_t nxt = min.pid;
+  heap_insert(nxt,min.wt+10);
+  memcpy( &pcb[ pid ].ctx, ctx, sizeof( ctx_t ) );
+  memcpy( ctx, &pcb[ nxt ].ctx, sizeof( ctx_t ) );
+  current = &pcb[ nxt ];
+  PL011_puth(UART0,min.wt);
+}
 void kernel_handler_rst( ctx_t* ctx              ) {
   /* Initialise PCBs representing processes stemming from execution of
    * the two user programs.  Note in each case that
@@ -34,15 +103,21 @@ void kernel_handler_rst( ctx_t* ctx              ) {
    */
 
   for(uint32_t i=0;i<=999;i++){
-    next[i] = 1001;
+    next[ i ] = 1001;
+    heap[ i ].wt  = 1001;
+    heap[ i ].pid = 1001;
   }
+  heap[ 1000 ].wt  = 1001;
+  heap[ 1000 ].pid = 1001;
 
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
   pcb[ 0 ].pid      = 0;
   pcb[ 0 ].ctx.cpsr = 0x50;
   pcb[ 0 ].ctx.pc   = ( uint32_t )( entry_Sh );
   pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_Sh );
-  entry[ 0 ].wt     = 100;
+  heap[ 0 ].wt      = 5;
+  heap[ 0 ].pid     = 0;
+  heap_insert(0,5);
   entry[ 0 ].pc     = ( uint32_t )( entry_Sh );
   entry[ 0 ].active = 1;
   next[ 0 ]         = 1;
@@ -52,7 +127,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 1 ].ctx.cpsr = 0x50;
   pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_P0 );
   pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P0 );
-  entry[ 1 ].wt     = 50;
+  heap_insert(1,50);
   entry[ 1 ].pc     = ( uint32_t )( entry_P0 );
   entry[ 1 ].active = 1;
   next[ 1 ] = 2;
@@ -62,7 +137,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 2 ].ctx.cpsr = 0x50;
   pcb[ 2 ].ctx.pc   = ( uint32_t )( entry_P1 );
   pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
-  entry[ 2 ].wt     = 50;
+  heap_insert(2,20);
   entry[ 2 ].pc     = ( uint32_t )( entry_P1 );
   entry[ 2 ].active = 1;
   next[ 2 ]         = 3;
@@ -72,15 +147,13 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 3 ].ctx.cpsr = 0x50;
   pcb[ 3 ].ctx.pc   = ( uint32_t )( entry_P2 );
   pcb[ 3 ].ctx.sp   = ( uint32_t )(  &tos_P2 );
-  entry[ 3 ].wt     = 50;
+  heap_insert(3,30);
   entry[ 3 ].pc     = ( uint32_t )( entry_P2 );
   entry[ 3 ].active = 1;
   next[ 3 ]         = 0;
-
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
    */
-
   current = &pcb[ 0 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
   nAP = 4;
   TIMER0->Timer1Load     = 0x00100000; // select period = 2^20 ticks ~= 1 sec
@@ -108,9 +181,14 @@ void kernel_handler_irq(ctx_t* ctx) {
 
   if( id == GIC_SOURCE_TIMER0 ) {
     TIMER0->Timer1IntClr = 0x01;
-    if(slice%4 == 0)
-      rrScheduler( ctx );
-    slice++;
+    //rrScheduler( ctx );
+    prScheduler(ctx);
+    PL011_putc(UART0,'\n');
+    PL011_putc(UART0,'#');
+    PL011_putc(UART0,'#');
+    PL011_putc(UART0,'#');
+    PL011_putc(UART0,'#');
+    PL011_putc(UART0,'\n');
   }
 
   // Step 5: write the interrupt identifier to signal we're done.
@@ -202,7 +280,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         pcb[ n ].ctx.sp   = (nDCP)*4096 + ((uint32_t)&boh);
         pcb[ n ].ctx.cpsr = 0x50;
         pcb[ n ].ctx.pc   = entry[ pid ].pc;
-        entry[ n ].wt     = wt;
+        heap_insert(n,wt);
         entry[ n ].pc     = pcb[ n ].ctx.pc;
         entry[ n ].active = 1;
         nAP++;
@@ -212,10 +290,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
             next[ n ] = 0;
           }
         }
-        //current = &pcb[n];
-        //memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
       }
-
       ctx->gpr[ 0 ] = n;
       break;
     }
@@ -232,6 +307,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         if(next[ i ] == pid){
           next[ i ] = next[ pid ];
           next[ pid ] = 1001;
+          heap_remove(pid);
+          break;
         }
       }
       ctx->gpr[ 0 ] = pid;
