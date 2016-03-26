@@ -91,7 +91,6 @@ void prScheduler(ctx_t* ctx){
   memcpy( &pcb[ pid ].ctx, ctx, sizeof( ctx_t ) );
   memcpy( ctx, &pcb[ nxt ].ctx, sizeof( ctx_t ) );
   current = &pcb[ nxt ];
-  PL011_puth(UART0,min.wt);
 }
 void kernel_handler_rst( ctx_t* ctx              ) {
   /* Initialise PCBs representing processes stemming from execution of
@@ -183,12 +182,6 @@ void kernel_handler_irq(ctx_t* ctx) {
     TIMER0->Timer1IntClr = 0x01;
     //rrScheduler( ctx );
     prScheduler(ctx);
-    PL011_putc(UART0,'\n');
-    PL011_putc(UART0,'#');
-    PL011_putc(UART0,'#');
-    PL011_putc(UART0,'#');
-    PL011_putc(UART0,'#');
-    PL011_putc(UART0,'\n');
   }
 
   // Step 5: write the interrupt identifier to signal we're done.
