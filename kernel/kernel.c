@@ -295,7 +295,6 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         ctx->gpr[ 0 ] = -1;
         break;
       }
-      nAP--;
       for(uint32_t i =0; i <= 999; i++){
         if(next[ i ] == pid){
           next[ i ] = next[ pid ];
@@ -304,6 +303,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
           break;
         }
       }
+      nAP--;
       ctx->gpr[ 0 ] = pid;
       break;
     }
