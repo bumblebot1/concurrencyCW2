@@ -181,37 +181,59 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   memset( &pcb[ 4 ], 0, sizeof( pcb_t ) );
   pcb[ 4 ].pid      = 4;
   pcb[ 4 ].ctx.cpsr = 0x50;
-  pcb[ 4 ].ctx.pc   = ( uint32_t )( entry_P3 );
-  pcb[ 4 ].ctx.sp   = ( uint32_t )(  &tos_P3 );
-  entry[ 4 ].pc     = ( uint32_t )( entry_P3 );
+  pcb[ 4 ].ctx.pc   = ( uint32_t )( entry_Aristotle );
+  pcb[ 4 ].ctx.sp   = ( uint32_t )(  &tos_Aristotle );
+  entry[ 4 ].pc     = ( uint32_t )( entry_Aristotle );
   entry[ 4 ].active = 1;
   next[ 4 ]         = 0;
 
   memset( &pcb[ 5 ], 0, sizeof( pcb_t ) );
   pcb[ 5 ].pid      = 5;
   pcb[ 5 ].ctx.cpsr = 0x50;
-  pcb[ 5 ].ctx.pc   = ( uint32_t )( entry_P4 );
-  pcb[ 5 ].ctx.sp   = ( uint32_t )(  &tos_P4 );
-  entry[ 5 ].pc     = ( uint32_t )( entry_P4 );
+  pcb[ 5 ].ctx.pc   = ( uint32_t )( entry_Confucius );
+  pcb[ 5 ].ctx.sp   = ( uint32_t )(  &tos_Confucius );
+  entry[ 5 ].pc     = ( uint32_t )( entry_Confucius );
   entry[ 5 ].active = 1;
   next[ 5 ]         = 0;
 
   memset( &pcb[ 6 ], 0, sizeof( pcb_t ) );
   pcb[ 6 ].pid      = 6;
   pcb[ 6 ].ctx.cpsr = 0x50;
-  pcb[ 6 ].ctx.pc   = ( uint32_t )( entry_P5 );
-  pcb[ 6 ].ctx.sp   = ( uint32_t )(  &tos_P5 );
-  entry[ 6 ].pc     = ( uint32_t )( entry_P5 );
+  pcb[ 6 ].ctx.pc   = ( uint32_t )( entry_Descartes );
+  pcb[ 6 ].ctx.sp   = ( uint32_t )(  &tos_Descartes );
+  entry[ 6 ].pc     = ( uint32_t )( entry_Descartes );
   entry[ 6 ].active = 1;
   next[ 6 ]         = 0;
+
+  memset( &pcb[ 7 ], 0, sizeof( pcb_t ) );
+  pcb[ 7 ].pid      = 7;
+  pcb[ 7 ].ctx.cpsr = 0x50;
+  pcb[ 7 ].ctx.pc   = ( uint32_t )( entry_Socrates );
+  pcb[ 7 ].ctx.sp   = ( uint32_t )(  &tos_Socrates );
+  entry[ 7 ].pc     = ( uint32_t )( entry_Socrates );
+  entry[ 7 ].active = 1;
+  next[ 7 ]         = 0;
+
+  memset( &pcb[ 8 ], 0, sizeof( pcb_t ) );
+  pcb[ 8 ].pid      = 8;
+  pcb[ 8 ].ctx.cpsr = 0x50;
+  pcb[ 8 ].ctx.pc   = ( uint32_t )( entry_Voltaire );
+  pcb[ 8 ].ctx.sp   = ( uint32_t )(  &tos_Voltaire );
+  entry[ 8 ].pc     = ( uint32_t )( entry_Voltaire );
+  entry[ 8 ].active = 1;
+  next[ 8 ]         = 0;
 
   if(schedType==2){
     heap_insert(4,30);
     heap_insert(5,30);
     heap_insert(6,30);
+    heap_insert(7,30);
+    heap_insert(8,30);
     next[ 4 ] = 5;
     next[ 5 ] = 6;
-    next[ 6 ] = 4;
+    next[ 6 ] = 7;
+    next[ 7 ] = 8;
+    next[ 8 ] = 4;
     current = &pcb[ 4 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
   }
   else{
@@ -225,7 +247,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
    * restored (i.e., executed) when the function then returns.
    */
 
-  nAP = 7;
+  nAP = 9;
   TIMER0->Timer1Load     = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl     = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl    |= 0x00000040; // select periodic timer

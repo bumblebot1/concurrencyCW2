@@ -18,9 +18,11 @@
 #include "P0.h"
 #include "P1.h"
 #include "P2.h"
-#include "P3.h"
-#include "P4.h"
-#include "P5.h"
+#include "Aristotle.h"
+#include "Confucius.h"
+#include "Descartes.h"
+#include "Socrates.h"
+#include "Voltaire.h"
 #include "Sh.h"
 
 /* The kernel source code is made simpler by three type definitions:
