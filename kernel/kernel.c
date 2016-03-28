@@ -19,7 +19,7 @@ uint32_t slice = 1;
 heap_t res;
 chan_t channels[1000];
 uint32_t nChans = 0;
-uint8_t schedType = 1;
+uint8_t schedType = 0;
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -352,6 +352,12 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       }
       int pidWrite = (int   ) ctx->gpr[ 0 ];
       int pidRead  = (int   ) ctx->gpr[ 1 ];
+      for(int i=0;i<=999;i++){
+        if(channels[i].active == 1 && channels[i].writeID == pidWrite && channels[i].readID == pidRead){
+          ctx->gpr[ 0 ] = i;
+          break;
+        }
+      }
       chan_t channel;
       int i = 0;
       channel.readID  = pidRead;
