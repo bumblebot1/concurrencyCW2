@@ -2,14 +2,11 @@
 
 void P4() {
   int i = makeChan(4,5);
-  int j = makeChan(5,4);
+  int j = makeChan(5,6);
   while(1){
+    writeChan(j,"Sent from P4 to P5\n");
     char* res=(char*)readChan(i);
     printf(res);
-    res=(char*)readChan(i);
-    printf(res);
-    writeChan(j,"Sent from P3\n");
-
   }
 }
 

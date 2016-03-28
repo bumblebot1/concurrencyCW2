@@ -196,11 +196,22 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   entry[ 5 ].active = 1;
   next[ 5 ]         = 0;
 
+  memset( &pcb[ 6 ], 0, sizeof( pcb_t ) );
+  pcb[ 6 ].pid      = 6;
+  pcb[ 6 ].ctx.cpsr = 0x50;
+  pcb[ 6 ].ctx.pc   = ( uint32_t )( entry_P5 );
+  pcb[ 6 ].ctx.sp   = ( uint32_t )(  &tos_P5 );
+  entry[ 6 ].pc     = ( uint32_t )( entry_P5 );
+  entry[ 6 ].active = 1;
+  next[ 6 ]         = 0;
+
   if(schedType==2){
     heap_insert(4,30);
     heap_insert(5,30);
+    heap_insert(6,30);
     next[ 4 ] = 5;
-    next[ 5 ] = 4;
+    next[ 5 ] = 6;
+    next[ 6 ] = 4;
     current = &pcb[ 4 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
   }
   else{
@@ -214,7 +225,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
    * restored (i.e., executed) when the function then returns.
    */
 
-  nAP = 6;
+  nAP = 7;
   TIMER0->Timer1Load     = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl     = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl    |= 0x00000040; // select periodic timer
