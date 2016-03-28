@@ -52,6 +52,13 @@ typedef struct {
   pid_t pid;
 } heap_t;
 
+typedef struct {
+  void* chan;
+  pid_t readID;
+  pid_t writeID;
+  uint8_t active;
+} chan_t;
+
 extern uint32_t boh;
 
 PL011_t* getStream(uint32_t fd){

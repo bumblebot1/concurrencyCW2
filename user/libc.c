@@ -118,7 +118,6 @@ int readLine(int fd, void* x){
               : "=r" (r)
               : "r" (fd), "r" (x)
               : "r0", "r1");
-
   return r;
 
 }
@@ -133,7 +132,6 @@ int fork(int pid,uint32_t wt){
               : "=r" (r)
               : "r" (pid), "r"(wt)
               : "r0");
-
   return r;
 }
 
@@ -159,6 +157,56 @@ int exec(int pid){
               : "=r" (r)
               : "r" (pid)
               : "r0");
+
+  return r;
+}
+
+int makeChan(int pidWrite,int pidRead){
+  int r;
+  asm volatile( "mov r0, %1 \n"
+                "mov r1, %2 \n"
+                "svc #7     \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (pidWrite), "r" (pidRead)
+              : "r0");
+  return r;
+}
+
+void writeChan(int id,void* value){
+  int r;
+
+  asm volatile( "mov r0, %1 \n"
+                "mov r1, %2 \n"
+                "svc #8     \n"
+              : "=r" (r)
+              : "r" (id), "r" (value));
+
+  return;
+}
+
+void* readChan(int id){
+  void* r;
+
+  asm volatile( "mov r0, %1 \n"
+                "svc #9     \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (id)
+              : "r0");
+
+  return r;
+}
+
+int closeChan(int id){
+  int r;
+
+  asm volatile( "mov r0, %1 \n"
+                "svc #10    \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (id)
+              : "r0" );
 
   return r;
 }

@@ -17,6 +17,9 @@ uint32_t nDCP = 0;  //number of dynamically create processes
 uint32_t next[1000];
 uint32_t slice = 1;
 heap_t res;
+chan_t channels[1000];
+uint32_t nChans = 0;
+uint8_t schedType = 1;
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -49,7 +52,7 @@ void heap_decreaseKey(pid_t pid, uint32_t wt){
 
 void heap_insert(pid_t pid, uint32_t wt ){
   uint32_t i;
-  for(i=0; i<=999; i++){
+  for(i=1; i<=1000; i++){
     if( heap[i].pid == 1001 )
       break;
   }
@@ -92,6 +95,42 @@ void prScheduler(ctx_t* ctx){
   memcpy( ctx, &pcb[ nxt ].ctx, sizeof( ctx_t ) );
   current = &pcb[ nxt ];
 }
+
+void scheduler(ctx_t* ctx){
+  switch (schedType){
+    case 0:
+      rrScheduler(ctx);
+      break;
+    case 1:
+      prScheduler(ctx);
+      break;
+    default:
+      rrScheduler(ctx);
+      break;
+  }
+}
+
+void blockProc(int pid){
+  for(uint32_t i =0; i <= 999; i++){
+    if(next[ i ] == pid){
+      next[ i ] = next[ pid ];
+      next[ pid ] = 1001;
+      heap_remove(pid);
+      break;
+    }
+  }
+}
+
+void unblockProc(int pid){
+  heap_insert(pid,50);
+  for(uint32_t i = 0; i <= 999; i++){
+    if(next[ i ] == 0){
+      next[ i ] = pid;
+      next[ pid ] = 0;
+    }
+  }
+}
+
 void kernel_handler_rst( ctx_t* ctx              ) {
   /* Initialise PCBs representing processes stemming from execution of
    * the two user programs.  Note in each case that
@@ -114,8 +153,6 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 0 ].ctx.cpsr = 0x50;
   pcb[ 0 ].ctx.pc   = ( uint32_t )( entry_Sh );
   pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_Sh );
-  heap[ 0 ].wt      = 5;
-  heap[ 0 ].pid     = 0;
   heap_insert(0,5);
   entry[ 0 ].pc     = ( uint32_t )( entry_Sh );
   entry[ 0 ].active = 1;
@@ -129,7 +166,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   heap_insert(1,50);
   entry[ 1 ].pc     = ( uint32_t )( entry_P0 );
   entry[ 1 ].active = 1;
-  next[ 1 ] = 2;
+  next[ 1 ]         = 2;
 
   memset( &pcb[ 2 ], 0, sizeof( pcb_t ) );
   pcb[ 2 ].pid      = 2;
@@ -180,8 +217,7 @@ void kernel_handler_irq(ctx_t* ctx) {
 
   if( id == GIC_SOURCE_TIMER0 ) {
     TIMER0->Timer1IntClr = 0x01;
-    //rrScheduler( ctx );
-    prScheduler(ctx);
+    scheduler(ctx);
   }
 
   // Step 5: write the interrupt identifier to signal we're done.
@@ -307,7 +343,55 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       ctx->gpr[ 0 ] = pid;
       break;
     }
-    case 0x06: { // exec(pid)
+    case 0x06: {  // exec(pid)
+      break;
+    }
+    case 0x07: {  //int makeChan(int pidWrite,int pidRead);
+      if(nChans>=1000){
+        break;
+      }
+      int pidWrite = (int   ) ctx->gpr[ 0 ];
+      int pidRead  = (int   ) ctx->gpr[ 1 ];
+      chan_t channel;
+      int i = 0;
+      channel.readID  = pidRead;
+      channel.writeID = pidWrite;
+      channel.active  = 1;
+      for(i=0;i<=999;i++){
+        if(channels[i].active == 0){
+          channels[i] = channel;
+          nChans++;
+          break;
+        }
+      }
+      ctx->gpr[ 0 ] = i;
+
+      break;
+    }
+    case 0x08: {  //int writeChan(int id,void* value);
+      int cid        = (int    ) ctx->gpr[ 0 ];
+      void* value    = (void*  ) ctx->gpr[ 1 ];
+      channels[ cid ].chan = value;
+      int blockID = channels[ cid ].writeID;
+      int unblockID = channels[ cid ].readID;
+      blockProc(blockID);
+      unblockProc(unblockID);
+      scheduler(ctx);
+      break;
+    }
+    case 0x09: {  //void* readChan(int id);
+      int cid        = (int   ) ctx->gpr[ 0 ];
+      void* toReturn = channels[ cid ].chan;
+      ctx->gpr[ 0 ]  = (uint32_t) (toReturn);
+      int unblockID = channels[ cid ].writeID;
+      int blockID = channels[ cid ].readID;
+      blockProc(blockID);
+      unblockProc(unblockID);
+      scheduler(ctx);
+      break;
+    }
+    case 0x0a: {  //int closeChan(int id);
+
       break;
     }
     default: {

@@ -21,4 +21,12 @@ int fork (int pid, uint32_t wt);
 int exec (int pid);
 
 int exit (int pid);
+
+int makeChan(int pidWrite,int pidRead);
+
+void writeChan(int id,void* value);
+
+void* readChan(int id);
+
+int closeChan(int id);
 #endif
