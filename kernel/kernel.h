@@ -59,6 +59,7 @@ typedef struct {
   pid_t readID;
   pid_t writeID;
   uint8_t active;
+  uint8_t ready;
 } chan_t;
 
 extern uint32_t boh;

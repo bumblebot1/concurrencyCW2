@@ -112,6 +112,7 @@ void scheduler(ctx_t* ctx){
       rrScheduler(ctx);
       break;
   }
+
 }
 
 void blockProc(int pid){
@@ -385,6 +386,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       channel.readID  = pidRead;
       channel.writeID = pidWrite;
       channel.active  = 1;
+      channel.ready   = 0;
       for(i=0;i<=999;i++){
         if(channels[i].active == 0){
           channels[i] = channel;
@@ -399,9 +401,10 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x08: {  //int writeChan(int id,void* value);
       int cid        = (int    ) ctx->gpr[ 0 ];
       void* value    = (void*  ) ctx->gpr[ 1 ];
-      channels[ cid ].chan = value;
+      channels[ cid ].chan  = value;
       int blockID = channels[ cid ].writeID;
       int unblockID = channels[ cid ].readID;
+      channels[ cid ].ready = 1;
       blockProc(blockID);
       unblockProc(unblockID);
       scheduler(ctx);
@@ -413,12 +416,25 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       ctx->gpr[ 0 ]  = (uint32_t) (toReturn);
       int unblockID = channels[ cid ].writeID;
       int blockID = channels[ cid ].readID;
+      channels[ cid ].ready = 0;
       blockProc(blockID);
       unblockProc(unblockID);
       scheduler(ctx);
       break;
     }
-    case 0x0a: {  //int closeChan(int id);
+    case 0x0a: { //void blockChan(int id);
+      int cid        = (int   ) ctx->gpr[ 0 ];
+      void* toReturn = channels[ cid ].chan;
+      if(channels[ cid ].ready == 0){
+        int unblockID = channels[ cid ].writeID;
+        int blockID = channels[ cid ].readID;
+        blockProc(blockID);
+        unblockProc(unblockID);
+        scheduler(ctx);
+      }
+      break;
+    }
+    case 0x0b: {  //int closeChan(int id);
 
       break;
     }
