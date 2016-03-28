@@ -1,11 +1,12 @@
 #include "P3.h"
 
 void P3() {
-  char* x = "hello world, I'm P3\n";
-
-  while( 1 ) {
-    write( 0, x, 20 );
+  int i = makeChan(4,5);
+  while(1){
+    writeChan(i,"hello\n");
+    writeChan(i," Bye\n");
   }
+
 }
 
 void (*entry_P3)() = &P3;

@@ -19,12 +19,16 @@ uint32_t slice = 1;
 heap_t res;
 chan_t channels[1000];
 uint32_t nChans = 0;
-uint8_t schedType = 0;
+uint8_t schedType = 2;
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
   uint32_t nxt = next[ pid ];
-  memcpy( &pcb[ pid ].ctx, ctx, sizeof( ctx_t ) );
+  while(pcb[ nxt ].block == 1){
+    pid = nxt;
+    nxt = next[pid];
+  }
+  memcpy( &pcb[ (*current).pid ].ctx, ctx, sizeof( ctx_t ) );
   memcpy( ctx, &pcb[ nxt ].ctx, sizeof( ctx_t ) );
   current = &pcb[ nxt ];
 }
@@ -111,24 +115,13 @@ void scheduler(ctx_t* ctx){
 }
 
 void blockProc(int pid){
-  for(uint32_t i =0; i <= 999; i++){
-    if(next[ i ] == pid){
-      next[ i ] = next[ pid ];
-      next[ pid ] = 1001;
-      heap_remove(pid);
-      break;
-    }
-  }
+  heap_remove(pid);
+  pcb[ pid ].block = 1;
 }
 
 void unblockProc(int pid){
   heap_insert(pid,50);
-  for(uint32_t i = 0; i <= 999; i++){
-    if(next[ i ] == 0){
-      next[ i ] = pid;
-      next[ pid ] = 0;
-    }
-  }
+  pcb[ pid ].block = 0;
 }
 
 void kernel_handler_rst( ctx_t* ctx              ) {
@@ -153,7 +146,6 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 0 ].ctx.cpsr = 0x50;
   pcb[ 0 ].ctx.pc   = ( uint32_t )( entry_Sh );
   pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_Sh );
-  heap_insert(0,5);
   entry[ 0 ].pc     = ( uint32_t )( entry_Sh );
   entry[ 0 ].active = 1;
   next[ 0 ]         = 1;
@@ -163,7 +155,6 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 1 ].ctx.cpsr = 0x50;
   pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_P0 );
   pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P0 );
-  heap_insert(1,50);
   entry[ 1 ].pc     = ( uint32_t )( entry_P0 );
   entry[ 1 ].active = 1;
   next[ 1 ]         = 2;
@@ -173,7 +164,6 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 2 ].ctx.cpsr = 0x50;
   pcb[ 2 ].ctx.pc   = ( uint32_t )( entry_P1 );
   pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
-  heap_insert(2,20);
   entry[ 2 ].pc     = ( uint32_t )( entry_P1 );
   entry[ 2 ].active = 1;
   next[ 2 ]         = 3;
@@ -183,15 +173,47 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 3 ].ctx.cpsr = 0x50;
   pcb[ 3 ].ctx.pc   = ( uint32_t )( entry_P2 );
   pcb[ 3 ].ctx.sp   = ( uint32_t )(  &tos_P2 );
-  heap_insert(3,30);
   entry[ 3 ].pc     = ( uint32_t )( entry_P2 );
   entry[ 3 ].active = 1;
   next[ 3 ]         = 0;
+
+  memset( &pcb[ 4 ], 0, sizeof( pcb_t ) );
+  pcb[ 4 ].pid      = 4;
+  pcb[ 4 ].ctx.cpsr = 0x50;
+  pcb[ 4 ].ctx.pc   = ( uint32_t )( entry_P3 );
+  pcb[ 4 ].ctx.sp   = ( uint32_t )(  &tos_P3 );
+  entry[ 4 ].pc     = ( uint32_t )( entry_P3 );
+  entry[ 4 ].active = 1;
+  next[ 4 ]         = 0;
+
+  memset( &pcb[ 5 ], 0, sizeof( pcb_t ) );
+  pcb[ 5 ].pid      = 5;
+  pcb[ 5 ].ctx.cpsr = 0x50;
+  pcb[ 5 ].ctx.pc   = ( uint32_t )( entry_P4 );
+  pcb[ 5 ].ctx.sp   = ( uint32_t )(  &tos_P4 );
+  entry[ 5 ].pc     = ( uint32_t )( entry_P4 );
+  entry[ 5 ].active = 1;
+  next[ 5 ]         = 0;
+
+  if(schedType==2){
+    heap_insert(4,30);
+    heap_insert(5,30);
+    next[ 4 ] = 5;
+    next[ 5 ] = 4;
+    current = &pcb[ 4 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
+  }
+  else{
+    heap_insert(0,5);
+    heap_insert(1,50);
+    heap_insert(2,20);
+    heap_insert(3,30);
+    current = &pcb[ 0 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
+  }
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
    */
-  current = &pcb[ 0 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
-  nAP = 4;
+
+  nAP = 6;
   TIMER0->Timer1Load     = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl     = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl    |= 0x00000040; // select periodic timer
@@ -355,7 +377,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       for(int i=0;i<=999;i++){
         if(channels[i].active == 1 && channels[i].writeID == pidWrite && channels[i].readID == pidRead){
           ctx->gpr[ 0 ] = i;
-          break;
+          return;
         }
       }
       chan_t channel;
