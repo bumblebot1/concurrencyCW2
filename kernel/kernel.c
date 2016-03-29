@@ -115,12 +115,6 @@ void scheduler(ctx_t* ctx){
 
 }
 
-void swapProc(ctx_t * ctx,pid_t pid){
-  memcpy( &pcb[ (*current).pid ].ctx, ctx, sizeof( ctx_t ) );
-  memcpy( ctx, &pcb[ pid ].ctx, sizeof( ctx_t ) );
-  current = &pcb[ pid ];
-}
-
 void blockProc(int pid){
   heap_remove(pid);
   pcb[ pid ].block = 1;
