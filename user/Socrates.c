@@ -7,13 +7,12 @@ void Socrates() {
   int d = makeChan(6,7);
   int x = 0;
   while(1){
-    x = (int) readChan(a);
-    x = (int) readChan(c);
-    printf("Socrates Eating\n");
-    writeChan(b,(void*)1);
-    writeChan(d,(void*)1);
+    x = (int) readChan(d);
+    printf("Socrates eating\n");
+    writeChan(a,(void*)1);
+    writeChan(c,(void*)1);
     printf("Socrates Thinking\n");
-    printf("Socrates Hungry\n");
+    x = (int) readChan(b);
   }
 }
 

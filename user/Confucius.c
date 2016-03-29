@@ -7,13 +7,13 @@ void Confucius() {
   int d = makeChan(4,5);
   int x = 0;
   while(1){
-    x = (int) readChan(a);
-    x = (int) readChan(c);
-    printf("Confucius Eating\n");
-    writeChan(b,(void*)1);
-    writeChan(d,(void*)1);
     printf("Confucius Thinking\n");
-    printf("Confucius Hungry\n");
+    x = (int) readChan(d);
+    x = (int) readChan(b);
+    printf("Confucius eating\n");
+    writeChan(a,(void*)1);
+    writeChan(c,(void*)1);
+
   }
 }
 

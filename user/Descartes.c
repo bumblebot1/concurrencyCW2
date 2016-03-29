@@ -7,13 +7,12 @@ void Descartes() {
   int d = makeChan(5,6);
   int x = 0;
   while(1){
-    x = (int) readChan(a);
-    x = (int) readChan(c);
-    printf("Descartes Eating\n");
-    writeChan(b,(void*)1);
-    writeChan(d,(void*)1);
+    printf("Descartes eating\n");
+    writeChan(a,(void*)1);
+    writeChan(c,(void*)1);
     printf("Descartes Thinking\n");
-    printf("Descartes Hungry\n");
+    x = (int) readChan(d);
+    x = (int) readChan(b);
   }
 }
 
