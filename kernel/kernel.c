@@ -19,7 +19,7 @@ uint32_t slice = 1;
 heap_t res;
 chan_t channels[1000];
 uint32_t nChans = 0;
-uint8_t schedType = 2;
+uint8_t schedType = 1;
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -94,7 +94,12 @@ void prScheduler(ctx_t* ctx){
   uint32_t pid = (*current).pid;
   heap_t min = heap_extractMin();
   uint32_t nxt = min.pid;
-  heap_insert(nxt,min.wt+10);
+  if(min.wt+10<1000){
+    heap_insert(nxt,min.wt+10);
+  }
+  else{
+    heap_insert(nxt,1000);
+  }
   memcpy( &pcb[ pid ].ctx, ctx, sizeof( ctx_t ) );
   memcpy( ctx, &pcb[ nxt ].ctx, sizeof( ctx_t ) );
   current = &pcb[ nxt ];
@@ -300,24 +305,25 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       char*  x      = ( char* )( ctx->gpr[ 1 ] );
       uint32_t    n = ( uint32_t   )( ctx->gpr[ 2 ] );
 
-      PL011_t* stream = getStream(fd);
-      for( uint32_t i = 0; i < n; i++ ) {
-        if( fd==0 ){
-          PL011_putc( stream, *x++ );
+      if( fd == 0 ){
+        for( uint32_t i = 0; i < n; i++ ) {
+          PL011_putc( UART0, *x++ );
         }
+        ctx->gpr[ 0 ] = n;
+        break;
       }
 
-      ctx->gpr[ 0 ] = n;
-      break;
     }
 
     case 0x02: { // read(fd, x, n )
       uint32_t    fd = ( uint32_t   )( ctx->gpr[ 0 ] );
       char*  x       = ( char* )( ctx->gpr[ 1 ] );
       uint32_t    n  = ( uint32_t   )( ctx->gpr[ 2 ] );
-      PL011_t* stream = getStream(fd);
-      for( uint32_t i=0; i < n; i++){
-        x[i] = PL011_getc( stream );
+
+      if( fd == 0 ){
+        for( uint32_t i=0; i < n; i++){
+          x[i] = PL011_getc( UART0 );
+        }
       }
 
       break;
@@ -327,21 +333,25 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       char*  x       = ( char* )( ctx->gpr[ 1 ] );
       uint32_t     n = 0;
       char y;
-      PL011_t* stream = getStream(fd);
-      while(1){
-        char y = PL011_getc( stream );
-        if( y==13){
-          x[n] = '\0';
-          PL011_putc( stream, '\n');
-          break;
+
+      if( fd == 0 ){
+        while(1){
+          char y = PL011_getc( UART0 );
+          if( y==13){
+            x[n] = '\0';
+            PL011_putc( UART0, '\n');
+            break;
+          }
+          x[n] = y;
+          PL011_putc( UART0, y);
+          n++;
         }
-        x[n] = y;
-        PL011_putc( stream, y);
-        n++;
+
+        ctx->gpr[ 0 ] = n;
+        break;
+
       }
 
-      ctx->gpr[ 0 ] = n;
-      break;
     }
     case 0x04: { // fork(pid,weight)
       uint32_t    pid    = ( uint32_t   )( ctx->gpr[ 0 ] );

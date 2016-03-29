@@ -29,4 +29,12 @@ void writeChan(int id,void* value);
 void* readChan(int id);
 
 int closeChan(int id);
+
+int creat(char* path  );
+
+int unlink(char* path );
+
+int open(char* path,int mode);
+
+int close(int fd);
 #endif
