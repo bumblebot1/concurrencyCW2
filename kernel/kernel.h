@@ -23,6 +23,7 @@
 #include "Descartes.h"
 #include "Socrates.h"
 #include "Voltaire.h"
+#include "DiskTest.h"
 #include "Sh.h"
 
 /* The kernel source code is made simpler by three type definitions:

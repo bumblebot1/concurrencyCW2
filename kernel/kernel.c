@@ -21,7 +21,7 @@ uint32_t slice = 1;
 heap_t res;
 chan_t channels[maxProcesses];
 uint32_t nChans = 0;
-uint8_t schedType = 2;
+uint8_t schedType = 3;
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -230,31 +230,48 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   entry[ 8 ].active = 1;
   next[ 8 ]         = 0;
 
-  if(schedType==2){
-    heap_insert(4,30);
-    heap_insert(5,30);
-    heap_insert(6,30);
-    heap_insert(7,30);
-    heap_insert(8,30);
-    next[ 4 ] = 5;
-    next[ 5 ] = 6;
-    next[ 6 ] = 7;
-    next[ 7 ] = 8;
-    next[ 8 ] = 4;
-    current = &pcb[ 4 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
-  }
-  else{
-    heap_insert(0,5);
-    heap_insert(1,50);
-    heap_insert(2,20);
-    heap_insert(3,30);
-    current = &pcb[ 0 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
+  memset( &pcb[ 9 ], 0, sizeof( pcb_t ) );
+  pcb[ 9 ].pid      = 9;
+  pcb[ 9 ].ctx.cpsr = 0x50;
+  pcb[ 9 ].ctx.pc   = ( uint32_t )( entry_DiskTest );
+  pcb[ 9 ].ctx.sp   = ( uint32_t )(  &tos_DiskTest );
+  entry[ 9 ].pc     = ( uint32_t )( entry_DiskTest );
+  entry[ 9 ].active = 1;
+  next[ 9 ]         = 9;
+
+  switch(schedType){
+    case 2: {
+      heap_insert(4,30);
+      heap_insert(5,30);
+      heap_insert(6,30);
+      heap_insert(7,30);
+      heap_insert(8,30);
+      next[ 4 ] = 5;
+      next[ 5 ] = 6;
+      next[ 6 ] = 7;
+      next[ 7 ] = 8;
+      next[ 8 ] = 4;
+      current = &pcb[ 4 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
+      break;
+    }
+    case 3: {
+      current = &pcb[ 9 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
+      break;
+    }
+    default: {
+      heap_insert(0,5);
+      heap_insert(1,50);
+      heap_insert(2,20);
+      heap_insert(3,30);
+      current = &pcb[ 0 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
+      break;
+    }
   }
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
    */
 
-  nAP = 9;
+  nAP = 10;
   TIMER0->Timer1Load     = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl     = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl    |= 0x00000040; // select periodic timer

@@ -48,4 +48,7 @@ SECTIONS {
   /* allocate stack for Voltaire       */
   .       = . + 0x00001000;
   tos_Voltaire  = .;
+  /* allocate stack for DiskTest       */
+  .       = . + 0x00001000;
+  tos_DiskTest  = .;
 }
