@@ -21,7 +21,7 @@ uint32_t slice = 1;
 heap_t res;
 chan_t channels[maxProcesses];
 uint32_t nChans = 0;
-uint8_t schedType = 2;
+uint8_t schedType = 1;
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -315,8 +315,13 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
    */
 
   switch( id ) {
-    case 0x00 : { // yield()
-      //scheduler( ctx );
+    case 0x00 : { // ps()
+      int* procs = (int *)ctx->gpr[ 0 ];
+      for(int i = 0; i<= lastPindex ; i++){
+        if(entry[i].active == 1){
+          procs[i]=1;
+        }
+      }
       break;
     }
 
@@ -436,12 +441,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
 
 
-    case 0x06: {  // exec(pid)
-      break;
-    }
-
-
-    case 0x07: {  //int makeChan(int pidWrite,int pidRead);
+    case 0x06: {  //int makeChan(int pidWrite,int pidRead);
       if(nChans>=maxProcesses){
         break;
       }
@@ -472,7 +472,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
 
 
-    case 0x08: {  //int writeChan(int id,void* value);
+    case 0x07: {  //int writeChan(int id,void* value);
       int cid        = (int    ) ctx->gpr[ 0 ];
       void* value    = (void*  ) ctx->gpr[ 1 ];
       if(channels[cid].active == 0){
@@ -491,7 +491,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
 
 
-    case 0x09: {  //void* readChan(int id);
+    case 0x08: {  //void* readChan(int id);
       int cid        = (int   ) ctx->gpr[ 0 ];
       void * toReturn;
       if(channels[cid].active == 0){
@@ -511,7 +511,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
 
 
-    case 0x0a: { //void blockChan(int id);
+    case 0x09: { //void blockChan(int id);
       int cid        = (int   ) ctx->gpr[ 0 ];
       void* toReturn = channels[ cid ].chan;
       if(channels[ cid ].ready == 0){
@@ -525,7 +525,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
 
 
-    case 0x0b: {  //int closeChan(int id);
+    case 0x0a: {  //int closeChan(int id);
       int cid = (int) ctx->gpr[ 0 ];
       if(channels[ cid ].active == 1){
         channels[cid].active = 0;
@@ -538,7 +538,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
 
 
-    case 0x0c: {
+    case 0x0b: {
       break;
     }
     default: {

@@ -43,7 +43,6 @@ void Sh() {
               if(pid == -1){
                 printf("Fork failed!Maybe you tried forking a non existing process?\n");
               }
-              printf("%d\n",pid);
             }
             else{
               strcpy(args,token);
@@ -55,7 +54,6 @@ void Sh() {
                   if(pid == -1){
                     printf("Fork failed!Maybe you tried forking a non existing process?\n");
                   }
-                  printf("%d\n",pid);
                 }
                 else{
                   printf("Too many arguments for your fork command!\n");
@@ -87,7 +85,6 @@ void Sh() {
               if(res == -1){
                 printf("Exit has failed!Maybe your tried exiting a non existing process?\n");
               }
-              printf("%d",res);
             }
             else
               printf("Too many arguments for your exit command!\n");
@@ -102,28 +99,13 @@ void Sh() {
       }
 
 
-      else if (strcmp(token,"exec")==0){
+      else if (strcmp(token,"ps")==0){
         token = strtok(NULL," ");
         if(token!=NULL){
-          char args[strlen(token)];
-          strcpy(args,token);
-          if(isNumber(args)==1){
-            token = strtok(NULL," ");
-            if(token==NULL){
-              //execute the exec here
-              uint32_t pid = parseInt(args);
-              printf("%d",pid);
-              //exec(pid)
-            }
-            else
-              printf("Too many arguments for your exec command!\n");
-          }
-          else{
-            printf("The pid you gave in your exec is not a number!\n");
-          }
+          printf("Too many arguments for your ps command!\n");
         }
         else{
-          printf("Not enough arguments for the exec!Please Enter a process id!\n");
+          ps();
         }
       }
 

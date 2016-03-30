@@ -1,6 +1,25 @@
 #include "libc.h"
 #include "stdarg.h"
 
+void ps(){
+  int procs[1000];
+  for(int i=0;i<1000;i++){
+    procs[i] = 0;
+  }
+  int r;
+  asm volatile( "mov r0, %1 \n"
+                "svc 0      \n"
+                "mov %0, r0\n"
+              : "=r" (r)
+              : "r" (procs)
+              : "r0");
+
+  for(int j=0;j<1000;j++){
+    if( procs[j] == 1)
+      printf("Process with id %d is running\n",j);
+  }
+}
+
 int write( int fd, void* x, int n ) {
   int r;
 
@@ -148,24 +167,11 @@ int exit(int pid){
   return r;
 }
 
-int exec(int pid){
-  int r;
-
-  asm volatile( "mov r0, %1 \n"
-                "svc #6     \n"
-                "mov %0, r0 \n"
-              : "=r" (r)
-              : "r" (pid)
-              : "r0");
-
-  return r;
-}
-
 int makeChan(int pidWrite,int pidRead){
   int r;
   asm volatile( "mov r0, %1 \n"
                 "mov r1, %2 \n"
-                "svc #7     \n"
+                "svc #6     \n"
                 "mov %0, r0 \n"
               : "=r" (r)
               : "r" (pidWrite), "r" (pidRead)
@@ -178,7 +184,7 @@ int writeChan(int id,void* value){
 
   asm volatile( "mov r0, %1 \n"
                 "mov r1, %2 \n"
-                "svc #8     \n"
+                "svc #7     \n"
               : "=r" (r)
               : "r" (id), "r" (value));
 
@@ -189,7 +195,7 @@ void blockChan(int id){
   int r;
 
   asm volatile( "mov r0, %1 \n"
-                "svc #10    \n"
+                "svc #9    \n"
                 "mov %0, r0 \n"
               : "=r" (r)
               : "r" (id)
@@ -203,7 +209,7 @@ void* readChan(int id){
   blockChan(id);
 
   asm volatile( "mov r0, %1 \n"
-                "svc #9     \n"
+                "svc #8     \n"
                 "mov %0, r0 \n"
               : "=r" (r)
               : "r" (id)
@@ -216,7 +222,7 @@ int closeChan(int id){
   int r;
 
   asm volatile( "mov r0, %1 \n"
-                "svc #11    \n"
+                "svc #10    \n"
                 "mov %0, r0 \n"
               : "=r" (r)
               : "r" (id)
@@ -229,7 +235,7 @@ uint32_t creat(char* path){
   uint32_t r;
 
   asm volatile( "mov r0, %1 \n"
-                "svc #12    \n"
+                "svc #11    \n"
                 "mov %0, r0 \n"
               : "=r" (r)
               : "r" (path)

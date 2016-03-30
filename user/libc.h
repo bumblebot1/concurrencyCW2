@@ -4,6 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "PL011.h"
+
+void ps();
+
 // writes n characters to the fileDescriptor
 int write ( int fd, void* x, int n);
 
@@ -17,8 +20,6 @@ int readLine (int fd, void* x);
 void printf (char* str,...);
 
 int fork (int pid, uint32_t wt);
-
-int exec (int pid);
 
 int exit (int pid);
 
