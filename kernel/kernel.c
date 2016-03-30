@@ -8,18 +8,20 @@
  * - employ a fixed-case of round-robin scheduling: no more processes
  *   can be created, and neither is able to complete.
  */
-
-pcb_t pcb[ 1000 ], *current = NULL;
-entry_t entry[ 1000 ];
-heap_t heap[ 1001 ];
+#define maxProcesses 1000
+#define heapSize 1001
+#define lastPindex 999
+pcb_t pcb[ maxProcesses ], *current = NULL;
+entry_t entry[ maxProcesses ];
+heap_t heap[ heapSize ];
 uint32_t nAP  = 0; //number of active proceses
 uint32_t nDCP = 0;  //number of dynamically create processes
-uint32_t next[1000];
+uint32_t next[maxProcesses];
 uint32_t slice = 1;
 heap_t res;
-chan_t channels[1000];
+chan_t channels[maxProcesses];
 uint32_t nChans = 0;
-uint8_t schedType = 1;
+uint8_t schedType = 2;
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -35,7 +37,7 @@ void rrScheduler( ctx_t* ctx ) {
 
 void heap_decreaseKey(pid_t pid, uint32_t wt){
   uint32_t i;
-  for(i=1; i<=1000; i++){
+  for(i=1; i<=maxProcesses; i++){
     if( heap[ i ].pid == pid)
       break;
   }
@@ -56,8 +58,8 @@ void heap_decreaseKey(pid_t pid, uint32_t wt){
 
 void heap_insert(pid_t pid, uint32_t wt ){
   uint32_t i;
-  for(i=1; i<=1000; i++){
-    if( heap[i].pid == 1001 )
+  for(i=1; i<=maxProcesses; i++){
+    if( heap[i].pid == heapSize )
       break;
   }
   heap[ i ].wt  = wt;
@@ -68,8 +70,8 @@ void heap_insert(pid_t pid, uint32_t wt ){
 heap_t heap_extractMin(){
   heap_t toReturn = heap[1];
   heap[ 1 ] = heap[ nAP ];
-  heap[ nAP ].wt  = 1001;
-  heap[ nAP ].pid = 1001;
+  heap[ nAP ].wt  = heapSize;
+  heap[ nAP ].pid = heapSize;
   uint32_t i = 1;
   while(heap[ i ].wt > heap[ 2*i ].wt || heap[ i ].wt > heap[ 2*i+1 ].wt){
     uint32_t min ;
@@ -94,11 +96,11 @@ void prScheduler(ctx_t* ctx){
   uint32_t pid = (*current).pid;
   heap_t min = heap_extractMin();
   uint32_t nxt = min.pid;
-  if(min.wt+10<1000){
+  if(min.wt+10<maxProcesses){
     heap_insert(nxt,min.wt+10);
   }
   else{
-    heap_insert(nxt,1000);
+    heap_insert(nxt,maxProcesses);
   }
   memcpy( &pcb[ pid ].ctx, ctx, sizeof( ctx_t ) );
   memcpy( ctx, &pcb[ nxt ].ctx, sizeof( ctx_t ) );
@@ -139,13 +141,13 @@ void kernel_handler_rst( ctx_t* ctx              ) {
    * - the PC and SP values matche the entry point and top of stack.
    */
 
-  for(uint32_t i=0;i<=999;i++){
-    next[ i ] = 1001;
-    heap[ i ].wt  = 1001;
-    heap[ i ].pid = 1001;
+  for(uint32_t i=0;i<=lastPindex;i++){
+    next[ i ] = heapSize;
+    heap[ i ].wt  = heapSize;
+    heap[ i ].pid = heapSize;
   }
-  heap[ 1000 ].wt  = 1001;
-  heap[ 1000 ].pid = 1001;
+  heap[ maxProcesses ].wt  = heapSize;
+  heap[ maxProcesses ].pid = heapSize;
 
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
   pcb[ 0 ].pid      = 0;
@@ -367,7 +369,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         n++;
       }
 
-      if(n<1000){
+      if(n<maxProcesses){
 
         nDCP++;
         memset( &pcb[ n ], 0, sizeof( pcb_t ) );
@@ -379,7 +381,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         entry[ n ].pc     = pcb[ n ].ctx.pc;
         entry[ n ].active = 1;
         nAP++;
-        for(uint32_t i = 0; i <= 999; i++){
+        for(uint32_t i = 0; i <= lastPindex; i++){
           if(next[ i ] == 0){
             next[ i ] = n;
             next[ n ] = 0;
@@ -397,10 +399,10 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         ctx->gpr[ 0 ] = -1;
         break;
       }
-      for(uint32_t i =0; i <= 999; i++){
+      for(uint32_t i =0; i <= lastPindex; i++){
         if(next[ i ] == pid){
           next[ i ] = next[ pid ];
-          next[ pid ] = 1001;
+          next[ pid ] = heapSize;
           heap_remove(pid);
           break;
         }
@@ -413,12 +415,12 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
     case 0x07: {  //int makeChan(int pidWrite,int pidRead);
-      if(nChans>=1000){
+      if(nChans>=maxProcesses){
         break;
       }
       int pidWrite = (int   ) ctx->gpr[ 0 ];
       int pidRead  = (int   ) ctx->gpr[ 1 ];
-      for(int i=0;i<=999;i++){
+      for(int i=0;i<=lastPindex;i++){
         if(channels[i].active == 1 && channels[i].writeID == pidWrite && channels[i].readID == pidRead){
           ctx->gpr[ 0 ] = i;
           return;
@@ -430,7 +432,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       channel.writeID = pidWrite;
       channel.active  = 1;
       channel.ready   = 0;
-      for(i=0;i<=999;i++){
+      for(i=0;i<=lastPindex;i++){
         if(channels[i].active == 0){
           channels[i] = channel;
           nChans++;
