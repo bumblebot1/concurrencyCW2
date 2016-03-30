@@ -173,7 +173,7 @@ int makeChan(int pidWrite,int pidRead){
   return r;
 }
 
-void writeChan(int id,void* value){
+int writeChan(int id,void* value){
   int r;
 
   asm volatile( "mov r0, %1 \n"
@@ -182,7 +182,7 @@ void writeChan(int id,void* value){
               : "=r" (r)
               : "r" (id), "r" (value));
 
-  return;
+  return r;
 }
 
 void blockChan(int id){
@@ -220,6 +220,19 @@ int closeChan(int id){
                 "mov %0, r0 \n"
               : "=r" (r)
               : "r" (id)
+              : "r0" );
+
+  return r;
+}
+
+uint32_t creat(char* path){
+  uint32_t r;
+
+  asm volatile( "mov r0, %1 \n"
+                "svc #12    \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (path)
               : "r0" );
 
   return r;

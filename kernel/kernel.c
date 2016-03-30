@@ -21,7 +21,7 @@ uint32_t slice = 1;
 heap_t res;
 chan_t channels[maxProcesses];
 uint32_t nChans = 0;
-uint8_t schedType = 3;
+uint8_t schedType = 2;
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -463,6 +463,10 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x08: {  //int writeChan(int id,void* value);
       int cid        = (int    ) ctx->gpr[ 0 ];
       void* value    = (void*  ) ctx->gpr[ 1 ];
+      if(channels[cid].active == 0){
+        ctx->gpr[ 0 ] = 0;
+        break;
+      }
       channels[ cid ].chan  = value;
       int blockID = channels[ cid ].writeID;
       int unblockID = channels[ cid ].readID;
@@ -470,6 +474,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       blockProc(blockID);
       unblockProc(unblockID);
       scheduler(ctx);
+      ctx->gpr[ 0 ] = 1;
       break;
     }
     case 0x09: {  //void* readChan(int id);
@@ -497,7 +502,17 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
     case 0x0b: {  //int closeChan(int id);
-
+      int cid = (int) ctx->gpr[ 0 ];
+      if(channels[ cid ].active == 1){
+        channels[cid].active = 0;
+        ctx->gpr[ 0 ] = 1;
+      }
+      else{
+        ctx->gpr[ 0 ] = 0;
+      }
+      break;
+    }
+    case 0x0c: {
       break;
     }
     default: {

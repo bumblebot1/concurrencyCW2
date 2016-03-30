@@ -26,6 +26,7 @@
 #include "DiskTest.h"
 #include "Sh.h"
 
+#include "disk.h"
 /* The kernel source code is made simpler by three type definitions:
  *
  * - a type that captures each component of an execution context (i.e.,

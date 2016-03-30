@@ -24,13 +24,13 @@ int exit (int pid);
 
 int makeChan(int pidWrite,int pidRead);
 
-void writeChan(int id,void* value);
+int writeChan(int id,void* value);
 
 void* readChan(int id);
 
 int closeChan(int id);
 
-int creat(char* path  );
+uint32_t creat(char* path  );
 
 int unlink(char* path );
 

@@ -2,7 +2,6 @@
 #define __DISK_H
 
 #include <stddef.h>
-#include <stdlib.h>
 
 #include   "GIC.h"
 #include "PL011.h"
