@@ -319,6 +319,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       //scheduler( ctx );
       break;
     }
+
     case 0x01 : { // write( fd, x, n )
       uint32_t   fd = ( uint32_t   )( ctx->gpr[ 0 ] );
       char*  x      = ( char* )( ctx->gpr[ 1 ] );
@@ -334,6 +335,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
 
     }
 
+
     case 0x02: { // read(fd, x, n )
       uint32_t    fd = ( uint32_t   )( ctx->gpr[ 0 ] );
       char*  x       = ( char* )( ctx->gpr[ 1 ] );
@@ -347,6 +349,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
 
       break;
     }
+
+
     case 0x03: { // readLine(fd, x)
       uint32_t    fd = ( uint32_t   )( ctx->gpr[ 0 ] );
       char*  x       = ( char* )( ctx->gpr[ 1 ] );
@@ -368,10 +372,10 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
 
         ctx->gpr[ 0 ] = n;
         break;
-
       }
-
     }
+
+
     case 0x04: { // fork(pid,weight)
       uint32_t    pid    = ( uint32_t   )( ctx->gpr[ 0 ] );
       uint32_t     wt    = ( uint32_t   )( ctx->gpr[ 1 ] );
@@ -408,6 +412,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       ctx->gpr[ 0 ] = n;
       break;
     }
+
+
     case 0x05: { // exit(pid)
       uint32_t    pid     = ( uint32_t   )( ctx->gpr[ 0 ] );
       if( entry[ pid ].active )
@@ -428,9 +434,13 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       ctx->gpr[ 0 ] = pid;
       break;
     }
+
+
     case 0x06: {  // exec(pid)
       break;
     }
+
+
     case 0x07: {  //int makeChan(int pidWrite,int pidRead);
       if(nChans>=maxProcesses){
         break;
@@ -460,6 +470,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
 
       break;
     }
+
+
     case 0x08: {  //int writeChan(int id,void* value);
       int cid        = (int    ) ctx->gpr[ 0 ];
       void* value    = (void*  ) ctx->gpr[ 1 ];
@@ -477,6 +489,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       ctx->gpr[ 0 ] = 1;
       break;
     }
+
+
     case 0x09: {  //void* readChan(int id);
       int cid        = (int   ) ctx->gpr[ 0 ];
       void * toReturn;
@@ -495,6 +509,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       scheduler(ctx);
       break;
     }
+
+
     case 0x0a: { //void blockChan(int id);
       int cid        = (int   ) ctx->gpr[ 0 ];
       void* toReturn = channels[ cid ].chan;
@@ -507,6 +523,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       }
       break;
     }
+
+
     case 0x0b: {  //int closeChan(int id);
       int cid = (int) ctx->gpr[ 0 ];
       if(channels[ cid ].active == 1){
@@ -518,6 +536,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       }
       break;
     }
+
+
     case 0x0c: {
       break;
     }
