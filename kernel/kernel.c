@@ -479,7 +479,13 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
     case 0x09: {  //void* readChan(int id);
       int cid        = (int   ) ctx->gpr[ 0 ];
-      void* toReturn = channels[ cid ].chan;
+      void * toReturn;
+      if(channels[cid].active == 0){
+        toReturn = NULL;
+        ctx->gpr[ 0 ] = (uint32_t) (toReturn);
+        break;
+      }
+      toReturn = channels[ cid ].chan;
       ctx->gpr[ 0 ]  = (uint32_t) (toReturn);
       int unblockID = channels[ cid ].writeID;
       int blockID = channels[ cid ].readID;
