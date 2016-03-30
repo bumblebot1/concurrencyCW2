@@ -21,7 +21,7 @@ uint32_t slice = 1;
 heap_t res;
 chan_t channels[maxProcesses];
 uint32_t nChans = 0;
-uint8_t schedType = 1;
+uint8_t schedType = 3;
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
