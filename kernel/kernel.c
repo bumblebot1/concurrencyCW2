@@ -303,7 +303,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
       uint8_t lineChar;
 
       fileList[index].fd     = index;
-      fileList[index].active = 1;
+      fileList[index].active = 0;
       for(int k=0; k<8; k++){
         fileList[index].blocks[k] = block[k];
       }
@@ -585,7 +585,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       for (index = 0; index<inodeSize; index++){
         if(fileList[index].active==0){
           ok=1;
-          fileList[index].active=1;
+          fileList[index].active=0;
           strcpy(fileList[index].name,name);
           fileList[index].blockIndex=0;
           fileList[index].blockLine=0;
