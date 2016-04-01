@@ -302,8 +302,9 @@ void kernel_handler_rst( ctx_t* ctx              ) {
       uint8_t blockLine;
       uint8_t lineChar;
 
-      fileList[index].fd     = index;
-      fileList[index].active = 0;
+      fileList[index].fd     = index+100;
+      fileList[index].active = 1;
+      fileList[index].open = 0;
       for(int k=0; k<8; k++){
         fileList[index].blocks[k] = block[k];
       }
@@ -585,7 +586,9 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       for (index = 0; index<inodeSize; index++){
         if(fileList[index].active==0){
           ok=1;
-          fileList[index].active=0;
+          fileList[index].active = 1;
+          fileList[index].open = 0;
+          fileList[index].fd = index+100;
           strcpy(fileList[index].name,name);
           fileList[index].blockIndex=0;
           fileList[index].blockLine=0;
@@ -624,7 +627,9 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       for(int i = 0; i<inodeSize;i++){
         if(strcmp(name,fileList[i].name) == 0){
             uint8_t block[16];
+            memset( block, 0, 16*sizeof( uint8_t) );
             disk_wr(i,block,16);
+            fileList[i].active = 0;
             ctx->gpr[0] = 1;
             return;
         }
