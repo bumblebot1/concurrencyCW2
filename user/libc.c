@@ -231,14 +231,14 @@ int closeChan(int id){
   return r;
 }
 
-uint32_t creat(char* path){
+uint32_t creat(char* name){
   uint32_t r;
 
   asm volatile( "mov r0, %1 \n"
                 "svc #11    \n"
                 "mov %0, r0 \n"
               : "=r" (r)
-              : "r" (path)
+              : "r" (name)
               : "r0" );
 
   return r;

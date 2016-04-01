@@ -31,11 +31,11 @@ void* readChan(int id);
 
 int closeChan(int id);
 
-uint32_t creat(char* path  );
+uint32_t creat(char* name);
 
-int unlink(char* path );
+int unlink(int id);
 
-int open(char* path,int mode);
+int open(int id,int mode);
 
-int close(int fd);
+int close(int id);
 #endif

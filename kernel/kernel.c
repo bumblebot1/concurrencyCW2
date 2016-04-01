@@ -11,17 +11,22 @@
 #define maxProcesses 1000
 #define heapSize 1001
 #define lastPindex 999
+#define subBlockSize 256
+#define subBlockNo 256 //indexes start from 1 to 255
+#define inodeSize 256
+#define diskEnd 65536
 pcb_t pcb[ maxProcesses ], *current = NULL;
 entry_t entry[ maxProcesses ];
 heap_t heap[ heapSize ];
 uint32_t nAP  = 0; //number of active proceses
-uint32_t nDCP = 0;  //number of dynamically create processes
+uint32_t nDCP = 0; //number of dynamically create processes
 uint32_t next[maxProcesses];
 uint32_t slice = 1;
 heap_t res;
 chan_t channels[maxProcesses];
 uint32_t nChans = 0;
 uint8_t schedType = 3;
+uint8_t used[subBlockSize]; //disk subblock used/unused
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -285,6 +290,14 @@ void kernel_handler_rst( ctx_t* ctx              ) {
 
   irq_enable();
 
+  for(uint32_t index=0;index<inodeSize;index++){
+    uint8_t block[16];
+    disk_rd(index,block,16);
+    for(uint8_t i=0;i<16;i++){
+      if(block[i] != 0)
+        used[block[i]] = 1;
+    }
+  }
   return;
 }
 
@@ -538,7 +551,41 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
 
 
-    case 0x0b: {
+    case 0x0b: {  //uint32_t creat(char* name);
+      char* name = (char *) ctx->gpr[ 0 ];
+      uint8_t ok = 0;
+      uint8_t block[16];
+      int i=0;
+      uint32_t index = 0;
+      for (index = 0; index<inodeSize; index++){
+        disk_rd(index,block,16);
+        if( block[0] == 0 ){
+          ok=1;
+          break;
+        }
+      }
+      if( ok == 1 ){
+        for(i=1; i<subBlockNo;i++){
+          if(used[i]==0){
+            ok = 0;
+            break;
+          }
+        }
+        if(ok==0){
+          for(int j = 0; j<16; j++)
+            block[j] = 0;
+          block[0] = i;
+          for(i = 8; i < 15 && name[i-8]!='\0'; i++){
+            block[i] = (uint8_t) name[i-8];
+          }
+          block[15] = (uint8_t) '\0';
+          disk_wr(index,block,16);
+          PL011_puth(UART0,ok);
+          ctx->gpr[0] = 1;
+          break;
+        }
+      }
+      ctx->gpr[0] = 0;
       break;
     }
     default: {
