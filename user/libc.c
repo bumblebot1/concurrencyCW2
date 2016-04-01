@@ -273,7 +273,6 @@ int open(char* name,int mode){
 
 int close(char* name){
   int r;
-
   asm volatile( "mov r0, %1 \n"
                 "svc #14    \n"
                 "mov %0, r0 \n"

@@ -637,6 +637,32 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       ctx->gpr[0] = 0;
       break;
     }
+
+    case 0x0d:{  //int open(char* name,int mode);
+      char* name = (char *) ctx->gpr[0];
+      for(int i = 0; i<inodeSize;i++){
+        if(strcmp(name,fileList[i].name) == 0){
+          fileList[i].open = (uint8_t) ctx->gpr[0];
+          ctx->gpr[0] = (int)fileList[i].fd;
+          return;
+        }
+      }
+      ctx->gpr[0] = 0;
+      break;
+    }
+
+    case 0x0e:{ //int close(char* name);
+      char* name = (char *) ctx->gpr[0];
+      for(int i=0;i<inodeSize;i++){
+        if(strcmp(name,fileList[i].name) == 0){
+          fileList[i].open = 0;
+          ctx->gpr[0] = 1;
+          return;
+        }
+      }
+      ctx->gpr[0] = 0;
+      break;
+    }
     default: {
       break;
     }

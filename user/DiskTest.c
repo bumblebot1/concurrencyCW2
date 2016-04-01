@@ -1,8 +1,10 @@
 #include "DiskTest.h"
 
 void DiskTest() {
-  uint32_t x = creat("naruto");
-  printf("created fine!%d",x);
+  int x=open("naruto",5);
+  printf("created fine!%d\n",x);
+  x=close("naruto");
+  printf("created fine!%d\n",x);
   if(x==1){
 
   }
