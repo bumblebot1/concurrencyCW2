@@ -27,6 +27,7 @@ chan_t channels[maxProcesses];
 uint32_t nChans = 0;
 uint8_t schedType = 3;
 uint8_t used[subBlockSize]; //disk subblock used/unused
+file_t fileList[256];
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -293,9 +294,12 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   for(uint32_t index=0;index<inodeSize;index++){
     uint8_t block[16];
     disk_rd(index,block,16);
-    for(uint8_t i=0;i<16;i++){
-      if(block[i] != 0)
-        used[block[i]] = 1;
+    if(block[0] != 0){
+      for(int i=0; i<8; i++){
+        if(block[i] != 0){
+          used[block[i]] = 1;
+        }
+      }
     }
   }
   return;
@@ -567,6 +571,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       if( ok == 1 ){
         for(i=1; i<subBlockNo;i++){
           if(used[i]==0){
+            used[i] = 1;
             ok = 0;
             break;
           }
@@ -580,7 +585,6 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
           }
           block[15] = (uint8_t) '\0';
           disk_wr(index,block,16);
-          PL011_puth(UART0,ok);
           ctx->gpr[0] = 1;
           break;
         }

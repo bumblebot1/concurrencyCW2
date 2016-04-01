@@ -60,6 +60,15 @@ typedef struct {
 } heap_t;
 
 typedef struct {
+  uint8_t fd;
+  char name[8];
+  uint8_t inodeID;
+  uint8_t blockIndex;
+  uint8_t blockLine;
+  uint8_t lineChar;
+} file_t;
+
+typedef struct {
   void* chan;
   pid_t readID;
   pid_t writeID;
