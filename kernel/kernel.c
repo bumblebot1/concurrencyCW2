@@ -27,7 +27,7 @@ chan_t channels[maxProcesses];
 uint32_t nChans = 0;
 uint8_t schedType = 3;
 uint8_t used[subBlockSize]; //disk subblock used/unused
-file_t fileList[256];
+file_t fileList[inodeSize];
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -295,6 +295,27 @@ void kernel_handler_rst( ctx_t* ctx              ) {
     uint8_t block[16];
     disk_rd(index,block,16);
     if(block[0] != 0){
+      uint8_t fd;
+      char name[8];
+      uint8_t active;
+      uint8_t blockIndex;
+      uint8_t blockLine;
+      uint8_t lineChar;
+
+      fileList[index].fd     = index;
+      fileList[index].active = 1;
+      for(int k=0; k<8; k++){
+        fileList[index].blocks[k] = block[k];
+      }
+      int j;
+      for(j=8; j<15 && (char) block[j]!='\0'; j++){
+        fileList[index].name[j-8] = (char) block[j];
+      }
+      fileList[index].name[j-8] = '\0';
+      fileList[index].blockIndex = 0;
+      fileList[index].blockLine = 0;
+      fileList[index].lineChar = 0;
+
       for(int i=0; i<8; i++){
         if(block[i] != 0){
           used[block[i]] = 1;
@@ -562,9 +583,13 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       int i=0;
       uint32_t index = 0;
       for (index = 0; index<inodeSize; index++){
-        disk_rd(index,block,16);
-        if( block[0] == 0 ){
+        if(fileList[index].active==0){
           ok=1;
+          fileList[index].active=1;
+          strcpy(fileList[index].name,name);
+          fileList[index].blockIndex=0;
+          fileList[index].blockLine=0;
+          fileList[index].lineChar=0;
           break;
         }
       }
@@ -572,6 +597,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         for(i=1; i<subBlockNo;i++){
           if(used[i]==0){
             used[i] = 1;
+            fileList[index].blocks[0] = i;
             ok = 0;
             break;
           }
@@ -587,6 +613,20 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
           disk_wr(index,block,16);
           ctx->gpr[0] = 1;
           break;
+        }
+      }
+      ctx->gpr[0] = 0;
+      break;
+    }
+
+    case 0x0c:{ //int unlink(char* name)
+      char* name = (char *) ctx->gpr[0];
+      for(int i = 0; i<inodeSize;i++){
+        if(strcmp(name,fileList[i].name) == 0){
+            uint8_t block[16];
+            disk_wr(i,block,16);
+            ctx->gpr[0] = 1;
+            return;
         }
       }
       ctx->gpr[0] = 0;

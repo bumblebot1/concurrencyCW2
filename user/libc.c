@@ -231,11 +231,51 @@ int closeChan(int id){
   return r;
 }
 
-uint32_t creat(char* name){
-  uint32_t r;
+int creat(char* name){
+  int r;
 
   asm volatile( "mov r0, %1 \n"
                 "svc #11    \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (name)
+              : "r0" );
+
+  return r;
+}
+
+int unlink(char* name){
+  int r;
+
+  asm volatile( "mov r0, %1 \n"
+                "svc #12    \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (name)
+              : "r0" );
+
+  return r;
+}
+
+int open(char* name,int mode){
+  int r;
+
+  asm volatile( "mov r0, %1 \n"
+                "mov r1, %2 \n"
+                "svc #13    \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (name), "r" (mode)
+              : "r0" );
+
+  return r;
+}
+
+int close(char* name){
+  int r;
+
+  asm volatile( "mov r0, %1 \n"
+                "svc #14    \n"
                 "mov %0, r0 \n"
               : "=r" (r)
               : "r" (name)

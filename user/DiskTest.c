@@ -1,7 +1,7 @@
 #include "DiskTest.h"
 
 void DiskTest() {
-  uint32_t x = creat("name");
+  uint32_t x = unlink("name");
   printf("created fine!%d",x);
   if(x==1){
 
