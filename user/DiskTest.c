@@ -2,6 +2,10 @@
 
 void DiskTest() {
   int x;
+  x= creat("naruto");
+  unlink("naruto");
+  x= creat("gib");
+  x=creat("test");
   x=open("gib",5);
   printf("created fine!%d\n",x);
   x=close(102);

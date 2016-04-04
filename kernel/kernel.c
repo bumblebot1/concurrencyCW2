@@ -261,6 +261,9 @@ void kernel_handler_rst( ctx_t* ctx              ) {
       break;
     }
     case 3: {
+      for(int a=0; a<subBlockNo; a++){
+        used[a] = 0;
+      }
       for(uint32_t index=0;index<inodeSize;index++){
         uint8_t block[16];
         disk_rd(index,block,16);
@@ -370,14 +373,24 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       char*  x      = ( char* )( ctx->gpr[ 1 ] );
       uint32_t    n = ( uint32_t   )( ctx->gpr[ 2 ] );
 
-      if( fd == 0 ){
+      if( fd < 100 ){
         for( uint32_t i = 0; i < n; i++ ) {
           PL011_putc( UART0, *x++ );
         }
-        ctx->gpr[ 0 ] = n;
-        break;
+        ctx->gpr[ 0 ] = 1;
       }
-
+      else{
+        //fd is an actual file;
+        for(int i=0;i<inodeSize;i++){
+          if(fd == fileList[i].fd){
+            //do the write logic
+            ctx->gpr[0] = 1;
+            return;
+          }
+        }
+        ctx->gpr[0] = 0;
+      }
+      break;
     }
 
 
@@ -632,6 +645,9 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         if(strcmp(name,fileList[i].name) == 0){
             uint8_t block[16];
             memset( block, 0, 16*sizeof( uint8_t) );
+            for(int j=0;j<8;j++){
+              used[fileList[i].blocks[j]] = 0;
+            }
             disk_wr(i,block,16);
             fileList[i].active = 0;
             ctx->gpr[0] = 1;
@@ -673,4 +689,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
   }
 
   return;
+}
+
+int writeFile(int id,char* x,int n){ //id=index of file in list
+
 }
