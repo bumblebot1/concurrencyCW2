@@ -25,7 +25,7 @@ uint32_t slice = 1;
 heap_t res;
 chan_t channels[maxProcesses];
 uint32_t nChans = 0;
-uint8_t schedType = 3;
+uint8_t schedType = 2;
 uint8_t used[subBlockSize]; //disk subblock used/unused
 file_t fileList[inodeSize];
 
@@ -261,6 +261,39 @@ void kernel_handler_rst( ctx_t* ctx              ) {
       break;
     }
     case 3: {
+      for(uint32_t index=0;index<inodeSize;index++){
+        uint8_t block[16];
+        disk_rd(index,block,16);
+        if(block[0] != 0){
+          uint8_t fd;
+          char name[8];
+          uint8_t active;
+          uint8_t blockIndex;
+          uint8_t blockLine;
+          uint8_t lineChar;
+
+          fileList[index].fd     = index+100;
+          fileList[index].active = 1;
+          fileList[index].open = 0;
+          for(int k=0; k<8; k++){
+            fileList[index].blocks[k] = block[k];
+          }
+          int j;
+          for(j=8; j<15 && (char) block[j]!='\0'; j++){
+            fileList[index].name[j-8] = (char) block[j];
+          }
+          fileList[index].name[j-8] = '\0';
+          fileList[index].blockIndex = 0;
+          fileList[index].blockLine = 0;
+          fileList[index].lineChar = 0;
+
+          for(int i=0; i<8; i++){
+            if(block[i] != 0){
+              used[block[i]] = 1;
+            }
+          }
+        }
+      }
       current = &pcb[ 9 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
       break;
     }
@@ -291,39 +324,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
 
   irq_enable();
 
-  for(uint32_t index=0;index<inodeSize;index++){
-    uint8_t block[16];
-    disk_rd(index,block,16);
-    if(block[0] != 0){
-      uint8_t fd;
-      char name[8];
-      uint8_t active;
-      uint8_t blockIndex;
-      uint8_t blockLine;
-      uint8_t lineChar;
 
-      fileList[index].fd     = index+100;
-      fileList[index].active = 1;
-      fileList[index].open = 0;
-      for(int k=0; k<8; k++){
-        fileList[index].blocks[k] = block[k];
-      }
-      int j;
-      for(j=8; j<15 && (char) block[j]!='\0'; j++){
-        fileList[index].name[j-8] = (char) block[j];
-      }
-      fileList[index].name[j-8] = '\0';
-      fileList[index].blockIndex = 0;
-      fileList[index].blockLine = 0;
-      fileList[index].lineChar = 0;
-
-      for(int i=0; i<8; i++){
-        if(block[i] != 0){
-          used[block[i]] = 1;
-        }
-      }
-    }
-  }
   return;
 }
 
@@ -336,7 +337,7 @@ void kernel_handler_irq(ctx_t* ctx) {
 
   if( id == GIC_SOURCE_TIMER0 ) {
     TIMER0->Timer1IntClr = 0x01;
-    scheduler(ctx);
+    //scheduler(ctx);
   }
 
   // Step 5: write the interrupt identifier to signal we're done.
@@ -550,7 +551,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
 
 
-    case 0x09: { //void blockChan(int id);
+    case 0x09: { //int blockChan(int id);
       int cid        = (int   ) ctx->gpr[ 0 ];
       void* toReturn = channels[ cid ].chan;
       if(channels[ cid ].ready == 0){
@@ -559,7 +560,10 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         blockProc(blockID);
         unblockProc(unblockID);
         scheduler(ctx);
+        ctx->gpr[0] = 1;
+        break;
       }
+      ctx->gpr[0] = 0;
       break;
     }
 

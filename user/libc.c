@@ -191,7 +191,7 @@ int writeChan(int id,void* value){
   return r;
 }
 
-void blockChan(int id){
+int blockChan(int id){
   int r;
 
   asm volatile( "mov r0, %1 \n"
@@ -201,12 +201,14 @@ void blockChan(int id){
               : "r" (id)
               : "r0");
 
-  return ;
+  return r;
 }
 
 void* readChan(int id){
   void* r;
-  blockChan(id);
+  while(blockChan(id)){
+    
+  }
 
   asm volatile( "mov r0, %1 \n"
                 "svc #8     \n"
