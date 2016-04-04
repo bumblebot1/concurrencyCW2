@@ -29,6 +29,8 @@ uint8_t schedType = 3;
 uint8_t used[subBlockSize]; //disk subblock used/unused
 file_t fileList[inodeSize];
 
+int writeFile(int id,char* x,int n);
+
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
   uint32_t nxt = next[ pid ];
@@ -384,7 +386,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         for(int i=0;i<inodeSize;i++){
           if(fd == fileList[i].fd){
             //do the write logic
-            ctx->gpr[0] = 1;
+            ctx->gpr[0] = writeFile(i,x,n);
             return;
           }
         }
@@ -663,6 +665,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       for(int i = 0; i<inodeSize;i++){
         if(strcmp(name,fileList[i].name) == 0){
           fileList[i].open = (uint8_t) ctx->gpr[0];
+          PL011_puth(UART0,fileList[i].blockIndex);
           ctx->gpr[0] = (int)fileList[i].fd;
           return;
         }
@@ -687,10 +690,130 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
   }
-
   return;
 }
 
 int writeFile(int id,char* x,int n){ //id=index of file in list
+  file_t file = fileList[id];
+  uint8_t* blocks     = file.blocks;
+  uint32_t blockIndex = (uint32_t)file.blockIndex;
+  uint32_t blockLine  = (uint32_t)file.blockLine;
+  uint32_t lineChar   = (uint32_t)file.lineChar;
+  uint32_t block      = blocks[blockIndex];
+  uint32_t pointer    = 256*block+blockLine;
+  uint8_t toWrite[16];
+  disk_rd(pointer,toWrite,16);
+  if( lineChar!=0 ){
+    do{
+      toWrite[lineChar] = (uint8_t) (*x);
+      x++;
+      lineChar=(lineChar+1)%16;
+      n--;
+    }while(n>0 && lineChar%16!=0);
+    disk_wr(pointer,toWrite,16);
+    if(lineChar==0){
+      fileList[id].lineChar=0;
+      blockLine=(blockLine+1)%256;
+      if(blockLine==0){
+        blockIndex+=1;
+        if(blockIndex==8){
+          //out of bounds of the file
+          if(n==0)
+            return 1;
+          else
+            return 0;
+        }
+        fileList[id].blockLine = blockLine;
+        block = blocks[blockIndex];
+        if(block==0){
+          //allocate block;
+          int ok = 0;
+          for(int i=1;i<subBlockNo;i++){
+            if(used[i]==0){
+              ok = 1;
+              block = i;
+              blocks[blockIndex] = i;
+              fileList[id].blocks[blockIndex] = i;
+              break;
+            }
+          }
+          if(ok==0){
+            //no more sub blocks can be allocated
+            if(n==0)
+              return 1;
+            else
+              return 0;
+          }
+        }
+      }
+      fileList[id].blockIndex = blockIndex;
+      fileList[id].blockLine = blockLine;
+    }
+  }
+  if(n!=0){
+    while(n/16!=0){
+      uint32_t pointer    = 256*block+blockLine;
+      disk_rd(pointer,toWrite,16);
+      do{
+        toWrite[lineChar] = (uint8_t) (*x);
+        x++;
+        lineChar=(lineChar+1)%16;
+        n--;
+      }while(n>0 && lineChar%16!=0);
+      disk_wr(pointer,toWrite,16);
+      if(lineChar==0){
+        fileList[id].lineChar=0;
+        blockLine=(blockLine+1)%256;
+        if(blockLine==0){
+          blockIndex+=1;
+          if(blockIndex==8){
+            //out of bounds of the file
+            if(n==0)
+              return 1;
+            else
+              return 0;
+          }
+          fileList[id].blockLine = blockLine;
+          block = blocks[blockIndex];
+          if(block==0){
+            //allocate block;
+            int ok = 0;
+            for(int i=1;i<subBlockNo;i++){
+              if(used[i]==0){
+                ok = 1;
+                block = i;
+                blocks[blockIndex] = i;
+                fileList[id].blocks[blockIndex] = i;
+                break;
+              }
+            }
+            if(ok==0){
+              //no more sub blocks can be allocated
+              if(n==0)
+                return 1;
+              else
+                return 0;
+            }
+          }
+        }
+        fileList[id].blockIndex = blockIndex;
+        fileList[id].blockLine = blockLine;
+      }
+    }
 
+    if(n!=0){
+      uint32_t pointer    = 256*block+blockLine;
+      disk_rd(pointer,toWrite,16);
+      while(n>0){
+        toWrite[lineChar] = (uint8_t) (*x);
+        x++;
+        lineChar=(lineChar+1)%16;
+        n--;
+      }
+      fileList[id].lineChar=lineChar;
+      disk_wr(pointer,toWrite,16);
+    }
+  }
+
+  return 1;
 }

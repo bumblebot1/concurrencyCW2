@@ -2,14 +2,17 @@
 
 void DiskTest() {
   int x;
-  x= creat("naruto");
-  unlink("naruto");
-  x= creat("gib");
-  x=creat("test");
-  x=open("gib",5);
-  printf("created fine!%d\n",x);
-  x=close(102);
-  printf("created fine!%d\n",x);
+  /*creat("test");
+  creat("fail");
+  creat("gib");
+*/
+  int fd=open("gib",5);
+  printf("opened fine!%d\n",fd);
+  char* y = "accommodationists";
+  printf("%d\n",strlen(y));
+  for(int i =0;i<256;i++){
+    x=write(fd,y,strlen(y));
+  }
   if(x==1){
 
   }
