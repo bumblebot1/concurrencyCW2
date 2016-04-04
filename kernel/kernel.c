@@ -658,7 +658,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x0e:{ //int close(int fd);
       int fd = (int) ctx->gpr[0];
       for(int i=0;i<inodeSize;i++){
-        if( fd == fileList[i].fd){
+        if( fd == fileList[i].fd && fileList[i].open == 1){
           fileList[i].open = 0;
           ctx->gpr[0] = 1;
           return;

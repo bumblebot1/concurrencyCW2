@@ -1,7 +1,8 @@
 #include "DiskTest.h"
 
 void DiskTest() {
-  int x=open("naruto",5);
+  int x;
+  x=open("gib",5);
   printf("created fine!%d\n",x);
   x=close(102);
   printf("created fine!%d\n",x);
