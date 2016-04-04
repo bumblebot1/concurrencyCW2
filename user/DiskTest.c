@@ -3,7 +3,7 @@
 void DiskTest() {
   int x=open("naruto",5);
   printf("created fine!%d\n",x);
-  x=close("naruto");
+  x=close(102);
   printf("created fine!%d\n",x);
   if(x==1){
 

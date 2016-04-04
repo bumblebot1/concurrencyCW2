@@ -37,5 +37,5 @@ int unlink(char* name);
 
 int open(char* name,int mode);
 
-int close(char* name);
+int close(int fd);
 #endif

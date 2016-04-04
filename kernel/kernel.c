@@ -25,7 +25,7 @@ uint32_t slice = 1;
 heap_t res;
 chan_t channels[maxProcesses];
 uint32_t nChans = 0;
-uint8_t schedType = 2;
+uint8_t schedType = 3;
 uint8_t used[subBlockSize]; //disk subblock used/unused
 file_t fileList[inodeSize];
 
@@ -655,10 +655,10 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
 
-    case 0x0e:{ //int close(char* name);
-      char* name = (char *) ctx->gpr[0];
+    case 0x0e:{ //int close(int fd);
+      int fd = (int) ctx->gpr[0];
       for(int i=0;i<inodeSize;i++){
-        if(strcmp(name,fileList[i].name) == 0){
+        if( fd == fileList[i].fd){
           fileList[i].open = 0;
           ctx->gpr[0] = 1;
           return;
