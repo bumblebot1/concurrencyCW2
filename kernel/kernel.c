@@ -337,7 +337,7 @@ void kernel_handler_irq(ctx_t* ctx) {
 
   if( id == GIC_SOURCE_TIMER0 ) {
     TIMER0->Timer1IntClr = 0x01;
-    //scheduler(ctx);
+    scheduler(ctx);
   }
 
   // Step 5: write the interrupt identifier to signal we're done.
