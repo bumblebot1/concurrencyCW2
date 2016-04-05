@@ -665,7 +665,6 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       for(int i = 0; i<inodeSize;i++){
         if(strcmp(name,fileList[i].name) == 0){
           fileList[i].open = (uint8_t) ctx->gpr[0];
-          PL011_puth(UART0,fileList[i].blockIndex);
           ctx->gpr[0] = (int)fileList[i].fd;
           return;
         }
@@ -833,5 +832,8 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
     }
   }
 
-  return 1;
+  if(n==0)
+    return 1;
+  else
+    return 0;
 }
