@@ -3,19 +3,17 @@
 void DiskTest() {
   int x;
   /*creat("test");
-  creat("fail");
+  creat("fail");*/
   creat("gib");
-*/
+
   int fd=open("gib",5);
   printf("opened fine!%d\n",fd);
-  char* y = "accommodationists";
+  char* y = "alfabetagammapsik";
   printf("%d\n",strlen(y));
-  for(int i =0;i<256;i++){
+  for(int i =0;i<256*8;i++){
     x=write(fd,y,strlen(y));
   }
-  if(x==1){
-
-  }
+  printf("Result %d\n",x );
   while( 1 ) {
   }
 

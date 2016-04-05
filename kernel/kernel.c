@@ -734,6 +734,7 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
               block = i;
               blocks[blockIndex] = i;
               fileList[id].blocks[blockIndex] = i;
+              used[i] = 1;
               break;
             }
           }
@@ -743,6 +744,14 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
               return 1;
             else
               return 0;
+          }
+          else{
+            uint8_t inode[16];
+            disk_rd(id,inode,16);
+            for(int a=0;a<8;a++){
+              inode[a] = fileList[id].blocks[a];
+            }
+            disk_wr(id,inode,16);
           }
         }
       }
@@ -784,6 +793,7 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
                 block = i;
                 blocks[blockIndex] = i;
                 fileList[id].blocks[blockIndex] = i;
+                used[i] = 1;
                 break;
               }
             }
@@ -793,6 +803,14 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
                 return 1;
               else
                 return 0;
+            }
+            else{
+              uint8_t inode[16];
+              disk_rd(id,inode,16);
+              for(int a=0;a<8;a++){
+                inode[a] = fileList[id].blocks[a];
+              }
+              disk_wr(id,inode,16);
             }
           }
         }
