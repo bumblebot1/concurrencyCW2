@@ -5,8 +5,8 @@ void DiskTest() {
   /*creat("test");
   creat("fail");*/
   int fd =open("test",O_WR);
-  char* y = "blues";
-  for(int i =0;i<=3;i++){
+  char* y = "shortStringabcdeK";
+  for(int i =0;i<=256;i++){
     x = write(fd,y,strlen(y));
     printf("Result %d\n",x );
   }
