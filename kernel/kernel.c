@@ -279,7 +279,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
 
           fileList[index].fd     = index+100;
           fileList[index].active = 1;
-          fileList[index].open = 0;
+          fileList[index].open = O_CLOSED;
           for(int k=0; k<8; k++){
             fileList[index].blocks[k] = block[k];
           }
@@ -386,7 +386,10 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         for(int i=0;i<inodeSize;i++){
           if(fd == fileList[i].fd){
             //do the write logic
-            ctx->gpr[0] = writeFile(i,x,n);
+            if(fileList[i].open == O_WR || fileList[i].open == O_RDWR)
+              ctx->gpr[0] = writeFile(i,x,n);
+            else
+              ctx->gpr[0] = 0;
             return;
           }
         }
@@ -606,7 +609,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         if(fileList[index].active==0){
           ok=1;
           fileList[index].active = 1;
-          fileList[index].open = 0;
+          fileList[index].open = O_CLOSED;
           fileList[index].fd = index+100;
           strcpy(fileList[index].name,name);
           fileList[index].blockIndex=0;
@@ -664,7 +667,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       char* name = (char *) ctx->gpr[0];
       for(int i = 0; i<inodeSize;i++){
         if(strcmp(name,fileList[i].name) == 0){
-          fileList[i].open = (uint8_t) ctx->gpr[0];
+          fileList[i].open = (open_t) ctx->gpr[1];
           ctx->gpr[0] = (int)fileList[i].fd;
           return;
         }
@@ -676,8 +679,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x0e:{ //int close(int fd);
       int fd = (int) ctx->gpr[0];
       for(int i=0;i<inodeSize;i++){
-        if( fd == fileList[i].fd && fileList[i].open == 1){
-          fileList[i].open = 0;
+        if( fd == fileList[i].fd && fileList[i].open != O_CLOSED){
+          fileList[i].open = O_CLOSED;
           ctx->gpr[0] = 1;
           return;
         }
@@ -722,7 +725,6 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
           else
             return 0;
         }
-        fileList[id].blockLine = blockLine;
         block = blocks[blockIndex];
         if(block==0){
           //allocate block;
@@ -781,7 +783,6 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
             else
               return 0;
           }
-          fileList[id].blockLine = blockLine;
           block = blocks[blockIndex];
           if(block==0){
             //allocate block;

@@ -4,7 +4,7 @@ void DiskTest() {
   int x;
   /*creat("test");
   creat("fail");*/
-  int fd =open("test",5);
+  int fd =open("test",O_WR);
   char* y = "shortStringfgehik";
   for(int i =0;i<=256;i++){
     x = write(fd,y,strlen(y));

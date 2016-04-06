@@ -259,7 +259,7 @@ int unlink(char* name){
   return r;
 }
 
-int open(char* name,int mode){
+int open(char* name,open_t mode){
   int r;
 
   asm volatile( "mov r0, %1 \n"

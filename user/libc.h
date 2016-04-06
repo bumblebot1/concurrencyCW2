@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "PL011.h"
+#include "fileSys.h"
 
 void ps();
 
@@ -35,7 +36,7 @@ int creat(char* name);
 
 int unlink(char* name);
 
-int open(char* name,int mode);
+int open(char* name,open_t mode);
 
 int close(int fd);
 #endif

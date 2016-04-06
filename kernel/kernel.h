@@ -25,6 +25,7 @@
 #include "Voltaire.h"
 #include "DiskTest.h"
 #include "Sh.h"
+#include "fileSys.h"
 
 #include "disk.h"
 /* The kernel source code is made simpler by three type definitions:
@@ -64,7 +65,7 @@ typedef struct {
   uint8_t blocks[8];
   char name[8];
   uint8_t active;
-  uint8_t open;
+  open_t open;
   uint8_t blockIndex;
   uint8_t blockLine;
   uint8_t lineChar;
