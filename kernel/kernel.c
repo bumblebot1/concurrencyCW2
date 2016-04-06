@@ -665,6 +665,11 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
 
     case 0x0d:{  //int open(char* name,int mode);
       char* name = (char *) ctx->gpr[0];
+      open_t mode = (open_t) ctx->gpr[1];
+      if(mode == O_CLOSED){
+        ctx->gpr[0] = 0;
+        return;
+      }
       for(int i = 0; i<inodeSize;i++){
         if(strcmp(name,fileList[i].name) == 0){
           fileList[i].open = (open_t) ctx->gpr[1];
