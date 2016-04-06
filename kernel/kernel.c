@@ -30,6 +30,7 @@ uint8_t used[subBlockSize]; //disk subblock used/unused
 file_t fileList[inodeSize];
 
 int writeFile(int id,char* x,int n);
+int readFile(int id,char* x,int n);
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -404,12 +405,25 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       char*  x       = ( char* )( ctx->gpr[ 1 ] );
       uint32_t    n  = ( uint32_t   )( ctx->gpr[ 2 ] );
 
-      if( fd == 0 ){
+      if( fd < 100 ){
         for( uint32_t i=0; i < n; i++){
           x[i] = PL011_getc( UART0 );
         }
       }
-
+      else{
+        //fd is an actual file;
+        for(int i=0;i<inodeSize;i++){
+          if(fd == fileList[i].fd){
+            //do the write logic
+            if(fileList[i].open == O_RD || fileList[i].open == O_RDWR)
+              ctx->gpr[0] = readFile(i,x,n);
+            else
+              ctx->gpr[0] = 0;
+            return;
+          }
+        }
+        ctx->gpr[0] = 0;
+      }
       break;
     }
 
@@ -837,9 +851,17 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
       disk_wr(pointer,toWrite,16);
     }
   }
+  else{
+    fileList[id].lineChar = lineChar;
+  }
 
   if(n==0)
     return 1;
   else
     return 0;
+}
+
+
+int readFile(int id,char* x,int n){
+  return 1;
 }
