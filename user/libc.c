@@ -66,7 +66,7 @@ char* intToString(int x,char* toReturn,int* len){
 }
 
 void printf(char* str,...){
-  char* x;
+  char* x = str; 
   unsigned int i;
   char* s;
 

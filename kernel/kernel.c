@@ -863,5 +863,86 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
 
 
 int readFile(int id,char* x,int n){
-  return 1;
+  file_t file = fileList[id];
+  uint8_t* blocks     = file.blocks;
+  uint32_t blockIndex = (uint32_t)file.blockIndex;
+  uint32_t blockLine  = (uint32_t)file.blockLine;
+  uint32_t lineChar   = (uint32_t)file.lineChar;
+  uint32_t block      = blocks[blockIndex];
+  uint32_t pointer    = 256*block+blockLine;
+  uint8_t toWrite[16];
+  uint32_t start = 0;
+  disk_rd(pointer,toWrite,16);
+  if( lineChar!=0 ){
+    do{
+      x[start] = (char) toWrite[lineChar];
+      start++;
+      lineChar=(lineChar+1)%16;
+      n--;
+    }while(n>0 && lineChar%16!=0);
+    if(lineChar==0){
+      fileList[id].lineChar=0;
+      blockLine=(blockLine+1)%256;
+      if(blockLine==0){
+        blockIndex+=1;
+        if(blockIndex==8){
+          //out of bounds of the file
+          return start;
+        }
+        block = blocks[blockIndex];
+        if(block==0){
+          return start;
+        }
+      }
+      fileList[id].blockIndex = blockIndex;
+      fileList[id].blockLine = blockLine;
+    }
+  }
+  if(n!=0){
+    while(n/16!=0){
+      uint32_t pointer    = 256*block+blockLine;
+      disk_rd(pointer,toWrite,16);
+      do{
+        x[start] = (char) toWrite[lineChar];
+        start++;
+        lineChar=(lineChar+1)%16;
+        n--;
+      }while(n>0 && lineChar%16!=0);
+      if(lineChar==0){
+        fileList[id].lineChar=0;
+        blockLine=(blockLine+1)%256;
+        if(blockLine==0){
+          blockIndex+=1;
+          if(blockIndex==8){
+            //out of bounds of the file
+            return start;
+          }
+          block = blocks[blockIndex];
+          if(block==0){
+            //allocate block;
+            return start;
+          }
+        }
+        fileList[id].blockIndex = blockIndex;
+        fileList[id].blockLine = blockLine;
+      }
+    }
+
+    if(n!=0){
+      uint32_t pointer    = 256*block+blockLine;
+      disk_rd(pointer,toWrite,16);
+      while(n>0){
+        x[start] = (char) toWrite[lineChar];
+        start++;
+        lineChar=(lineChar+1)%16;
+        n--;
+      }
+      fileList[id].lineChar=lineChar;
+    }
+  }
+  else{
+    fileList[id].lineChar = lineChar;
+  }
+
+  return start;
 }
