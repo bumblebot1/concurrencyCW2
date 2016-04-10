@@ -39,4 +39,6 @@ int unlink(char* name);
 int open(char* name,open_t mode);
 
 int close(int fd);
+
+int lseek(int fd,int offset,seek_t mode);
 #endif

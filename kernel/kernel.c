@@ -707,6 +707,61 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       ctx->gpr[0] = 0;
       break;
     }
+    case 0x0f:{ //int lseek(int fd);
+      int fd = (int) ctx->gpr[0];
+      int offset = (int) ctx->gpr[1];
+      seek_t mode = ctx->gpr[2];
+      int fileIndex = 0;
+      for(int i=0;i<inodeSize;i++){
+        if(fd == fileList[i].fd){
+          //check file is actually open
+          if(fileList[i].open != O_CLOSED)
+            fileIndex = i;
+          else{
+            ctx->gpr[0] = 0;
+            return;
+          }
+        }
+      }
+
+      switch(mode){
+        case SEEK_L:{
+          break;
+        }
+        case SEEK_R:{
+          break;
+        }
+        case SEEK_END:{
+          int j = 0;
+          for(j=0;j<8;j++){
+            if(fileList[fileIndex].blocks[j] == 0){
+              break;
+            }
+          }
+          if(j!=0){
+            fileList[fileIndex].blockIndex = j-1;
+          }
+          else{
+            fileList[fileIndex].blockIndex = 0;
+          }
+          fileList[fileIndex].blockLine  = 255;
+          fileList[fileIndex].lineChar   = 15;
+          break;
+        }
+        case SEEK_START:{
+          fileList[fileIndex].blockIndex = 0;
+          fileList[fileIndex].blockLine  = 0;
+          fileList[fileIndex].lineChar   = 0;
+          break;
+        }
+        default:{
+          ctx->gpr[0] = 0;
+          break;
+        }
+      }
+      break;
+    }
+
     default: {
       break;
     }

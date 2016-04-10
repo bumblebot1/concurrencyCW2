@@ -66,7 +66,7 @@ char* intToString(int x,char* toReturn,int* len){
 }
 
 void printf(char* str,...){
-  char* x = str; 
+  char* x = str;
   unsigned int i;
   char* s;
 
@@ -281,6 +281,21 @@ int close(int fd){
               : "=r" (r)
               : "r" (fd)
               : "r0" );
+
+  return r;
+}
+
+int lseek( int fd, int offset, seek_t mode ) {
+  int r;
+
+  asm volatile( "mov r0, %1 \n"
+                "mov r1, %2 \n"
+                "mov r3, %3 \n"
+                "svc #15    \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r" (fd), "r" (offset), "r" (mode)
+              : "r0", "r1" );
 
   return r;
 }
