@@ -31,6 +31,8 @@ file_t fileList[inodeSize];
 
 int writeFile(int id,char* x,int n);
 int readFile(int id,char* x,int n);
+int leftSeek(int index,int offset);
+int rightSeek(int index,int offset);
 
 void rrScheduler( ctx_t* ctx ) {
   uint32_t pid = (*current).pid;
@@ -726,9 +728,11 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
 
       switch(mode){
         case SEEK_L:{
+          ctx->gpr[0] = leftSeek(fileIndex,offset);
           break;
         }
         case SEEK_R:{
+          ctx->gpr[0] = rightSeek(fileIndex,offset);
           break;
         }
         case SEEK_END:{
@@ -767,6 +771,66 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
   }
   return;
+}
+
+int leftSeek(int index,int offset){
+  int k=0; //no of positions moved in the file.
+  while(offset!=0){
+    int lineChar   = fileList[index].lineChar;
+    int blockLine  = fileList[index].blockLine;
+    int blockIndex = fileList[index].blockIndex;
+    lineChar = (lineChar-1);
+    if(lineChar < 0){
+      lineChar = 15;
+      blockLine = (blockLine-1);
+      if(blockLine < 0){
+        blockLine = 255;
+        blockIndex = blockIndex-1;
+        if(blockIndex < 0){
+          //cant move more since file is done
+          return k;
+        }
+        else{
+          //you cane move further so do nothing
+        }
+      }
+    }
+    offset--;
+    k++;
+    fileList[index].lineChar   = lineChar;
+    fileList[index].blockLine  = blockLine;
+    fileList[index].blockIndex = blockIndex;
+  }
+  return k;
+}
+
+int rightSeek(int index,int offset){
+  int k=0; //no of positions moved in the file.
+  while(offset!=0){
+    int lineChar   = fileList[index].lineChar;
+    int blockLine  = fileList[index].blockLine;
+    int blockIndex = fileList[index].blockIndex;
+    lineChar = (lineChar+1)%16;
+    if(lineChar == 0){
+      blockLine = (blockLine+1)%256;
+      if(blockLine == 0){
+        blockIndex = blockIndex+1;
+        if(blockIndex >=8 || fileList[index].blocks[blockIndex] == 0){
+          //cant move more since file is done
+          return k;
+        }
+        else{
+          //you cane move further so do nothing
+        }
+      }
+    }
+    offset--;
+    k++;
+    fileList[index].lineChar   = lineChar;
+    fileList[index].blockLine  = blockLine;
+    fileList[index].blockIndex = blockIndex;
+  }
+  return k;
 }
 
 int writeFile(int id,char* x,int n){ //id=index of file in list
