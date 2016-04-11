@@ -444,9 +444,21 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
             PL011_putc( UART0, '\n');
             break;
           }
-          x[n] = y;
-          PL011_putc( UART0, y);
-          n++;
+          if(y!=127){
+            if(y>31 && y<127){
+              x[n] = y;
+              PL011_putc( UART0, y);
+              n++;
+            }
+          }
+          else{
+            if(n!=0){
+              PL011_putc(UART0,'\b');
+              PL011_putc(UART0,' ');
+              PL011_putc(UART0,'\b');
+              n--;
+            }
+          }
         }
 
         ctx->gpr[ 0 ] = n;

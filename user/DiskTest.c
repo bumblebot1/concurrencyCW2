@@ -24,7 +24,7 @@ void DiskTest() {
   while( 1 ) {
   }
 
-  return;
+  return;;
 }
 
 void (*entry_DiskTest)() = &DiskTest;
