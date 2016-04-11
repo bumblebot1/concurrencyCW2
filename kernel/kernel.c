@@ -382,7 +382,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         for( uint32_t i = 0; i < n; i++ ) {
           PL011_putc( UART0, *x++ );
         }
-        ctx->gpr[ 0 ] = 1;
+        ctx->gpr[ 0 ] = n;
       }
       else{
         //fd is an actual file;
@@ -411,6 +411,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         for( uint32_t i=0; i < n; i++){
           x[i] = PL011_getc( UART0 );
         }
+        ctx->gpr[0] = n;
       }
       else{
         //fd is an actual file;
@@ -854,26 +855,24 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
   uint32_t block      = blocks[blockIndex];
   uint32_t pointer    = 256*block+blockLine;
   uint8_t toWrite[16];
+  uint32_t start = 0;
   disk_rd(pointer,toWrite,16);
   if( lineChar!=0 ){
     do{
       toWrite[lineChar] = (uint8_t) (*x);
       x++;
       lineChar=(lineChar+1)%16;
+      start++;
       n--;
     }while(n>0 && lineChar%16!=0);
     disk_wr(pointer,toWrite,16);
     if(lineChar==0){
-      fileList[id].lineChar=0;
       blockLine=(blockLine+1)%256;
       if(blockLine==0){
         blockIndex+=1;
         if(blockIndex==8){
           //out of bounds of the file
-          if(n==0)
-            return 1;
-          else
-            return 0;
+          return start;
         }
         block = blocks[blockIndex];
         if(block==0){
@@ -884,17 +883,13 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
               ok = 1;
               block = i;
               blocks[blockIndex] = i;
-              fileList[id].blocks[blockIndex] = i;
               used[i] = 1;
               break;
             }
           }
           if(ok==0){
             //no more sub blocks can be allocated
-            if(n==0)
-              return 1;
-            else
-              return 0;
+            return start;
           }
           else{
             uint8_t inode[16];
@@ -906,8 +901,9 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
           }
         }
       }
+      fileList[id].lineChar   = lineChar;
       fileList[id].blockIndex = blockIndex;
-      fileList[id].blockLine = blockLine;
+      fileList[id].blockLine  = blockLine;
     }
   }
   if(n!=0){
@@ -917,21 +913,18 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
       do{
         toWrite[lineChar] = (uint8_t) (*x);
         x++;
+        start++;
         lineChar=(lineChar+1)%16;
         n--;
       }while(n>0 && lineChar%16!=0);
       disk_wr(pointer,toWrite,16);
       if(lineChar==0){
-        fileList[id].lineChar=0;
         blockLine=(blockLine+1)%256;
         if(blockLine==0){
           blockIndex+=1;
           if(blockIndex==8){
             //out of bounds of the file
-            if(n==0)
-              return 1;
-            else
-              return 0;
+            return start;
           }
           block = blocks[blockIndex];
           if(block==0){
@@ -942,17 +935,13 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
                 ok = 1;
                 block = i;
                 blocks[blockIndex] = i;
-                fileList[id].blocks[blockIndex] = i;
                 used[i] = 1;
                 break;
               }
             }
             if(ok==0){
               //no more sub blocks can be allocated
-              if(n==0)
-                return 1;
-              else
-                return 0;
+              return start;
             }
             else{
               uint8_t inode[16];
@@ -964,8 +953,9 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
             }
           }
         }
+        fileList[id].lineChar   = lineChar;
         fileList[id].blockIndex = blockIndex;
-        fileList[id].blockLine = blockLine;
+        fileList[id].blockLine  = blockLine;
       }
     }
 
@@ -974,11 +964,12 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
       disk_rd(pointer,toWrite,16);
       while(n>0){
         toWrite[lineChar] = (uint8_t) (*x);
+        start++;
         x++;
         lineChar=(lineChar+1)%16;
         n--;
       }
-      fileList[id].lineChar=lineChar;
+      fileList[id].lineChar = lineChar;
       disk_wr(pointer,toWrite,16);
     }
   }
@@ -986,10 +977,7 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
     fileList[id].lineChar = lineChar;
   }
 
-  if(n==0)
-    return 1;
-  else
-    return 0;
+  return start;
 }
 
 
@@ -1012,7 +1000,6 @@ int readFile(int id,char* x,int n){
       n--;
     }while(n>0 && lineChar%16!=0);
     if(lineChar==0){
-      fileList[id].lineChar=0;
       blockLine=(blockLine+1)%256;
       if(blockLine==0){
         blockIndex+=1;
@@ -1025,8 +1012,9 @@ int readFile(int id,char* x,int n){
           return start;
         }
       }
+      fileList[id].lineChar   = lineChar;
       fileList[id].blockIndex = blockIndex;
-      fileList[id].blockLine = blockLine;
+      fileList[id].blockLine  = blockLine;
     }
   }
   if(n!=0){
@@ -1040,7 +1028,7 @@ int readFile(int id,char* x,int n){
         n--;
       }while(n>0 && lineChar%16!=0);
       if(lineChar==0){
-        fileList[id].lineChar=0;
+
         blockLine=(blockLine+1)%256;
         if(blockLine==0){
           blockIndex+=1;
@@ -1054,8 +1042,9 @@ int readFile(int id,char* x,int n){
             return start;
           }
         }
+        fileList[id].lineChar   = lineChar;
         fileList[id].blockIndex = blockIndex;
-        fileList[id].blockLine = blockLine;
+        fileList[id].blockLine  = blockLine;
       }
     }
 
@@ -1068,7 +1057,7 @@ int readFile(int id,char* x,int n){
         lineChar=(lineChar+1)%16;
         n--;
       }
-      fileList[id].lineChar=lineChar;
+      fileList[id].lineChar = lineChar;
     }
   }
   else{
