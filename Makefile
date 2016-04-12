@@ -8,7 +8,7 @@ clean-part1:
 
 launch-part2-IPC-qemu:
 	(cd Part2-IPC; make launch-qemu)
-launch-part1-IPC-gdb:
+launch-part2-IPC-gdb:
 	(cd Part2-IPC; make launch-gdb)
 clean-part2-IPC:
 	(cd Part2-IPC; make clean)

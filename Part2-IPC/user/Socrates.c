@@ -1,10 +1,10 @@
 #include "Socrates.h"
 
 void Socrates() {
-  int a = makeChan(7,8);//right
-  int b = makeChan(8,7);
-  int c = makeChan(7,6);//left
-  int d = makeChan(6,7);
+  int a = makeChan(3,4);//right
+  int b = makeChan(4,3);
+  int c = makeChan(3,2);//left
+  int d = makeChan(2,3);
   int x = 0;
   while(1){
     x = (int) readChan(d);

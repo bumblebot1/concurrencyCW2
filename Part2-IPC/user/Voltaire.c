@@ -1,10 +1,10 @@
 #include "Voltaire.h"
 
 void Voltaire() {
-  int a = makeChan(8,4);//right
-  int b = makeChan(4,8);
-  int c = makeChan(8,7);//left
-  int d = makeChan(7,8);
+  int a = makeChan(4,0);//right
+  int b = makeChan(0,4);
+  int c = makeChan(4,3);//left
+  int d = makeChan(3,4);
   int x = 0;
   while(1){
     printf("Voltaire Thinking\n");
