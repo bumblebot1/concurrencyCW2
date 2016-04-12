@@ -5,6 +5,8 @@ void DiskTest() {
   /*creat("test");
   creat("fail");*/
   char* t = "gibsonasldsladlasd";
+  for(int i=0;i<125;i++)
+    unlink("test");
   while(creat("new")!=0){
 
   }

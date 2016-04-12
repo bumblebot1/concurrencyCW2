@@ -15,16 +15,7 @@
 
 // Include definitions relating to the 2 user programs.
 
-#include "P0.h"
-#include "P1.h"
-#include "P2.h"
-#include "Aristotle.h"
-#include "Confucius.h"
-#include "Descartes.h"
-#include "Socrates.h"
-#include "Voltaire.h"
 #include "DiskTest.h"
-#include "Sh.h"
 #include "fileSys.h"
 
 #include "disk.h"
