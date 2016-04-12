@@ -163,162 +163,39 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
   pcb[ 0 ].pid      = 0;
   pcb[ 0 ].ctx.cpsr = 0x50;
-  pcb[ 0 ].ctx.pc   = ( uint32_t )( entry_Sh );
-  pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_Sh );
-  entry[ 0 ].pc     = ( uint32_t )( entry_Sh );
+  pcb[ 0 ].ctx.pc   = ( uint32_t )( entry_P0 );
+  pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_P0 );
+  entry[ 0 ].pc     = ( uint32_t )( entry_P0 );
   entry[ 0 ].active = 1;
   next[ 0 ]         = 1;
 
   memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
   pcb[ 1 ].pid      = 1;
   pcb[ 1 ].ctx.cpsr = 0x50;
-  pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_P0 );
-  pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P0 );
-  entry[ 1 ].pc     = ( uint32_t )( entry_P0 );
+  pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_P1 );
+  pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
+  entry[ 1 ].pc     = ( uint32_t )( entry_P1 );
   entry[ 1 ].active = 1;
   next[ 1 ]         = 2;
 
   memset( &pcb[ 2 ], 0, sizeof( pcb_t ) );
   pcb[ 2 ].pid      = 2;
   pcb[ 2 ].ctx.cpsr = 0x50;
-  pcb[ 2 ].ctx.pc   = ( uint32_t )( entry_P1 );
-  pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
-  entry[ 2 ].pc     = ( uint32_t )( entry_P1 );
+  pcb[ 2 ].ctx.pc   = ( uint32_t )( entry_P2 );
+  pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_P2 );
+  entry[ 2 ].pc     = ( uint32_t )( entry_P2 );
   entry[ 2 ].active = 1;
-  next[ 2 ]         = 3;
+  next[ 2 ]         = 0;
 
-  memset( &pcb[ 3 ], 0, sizeof( pcb_t ) );
-  pcb[ 3 ].pid      = 3;
-  pcb[ 3 ].ctx.cpsr = 0x50;
-  pcb[ 3 ].ctx.pc   = ( uint32_t )( entry_P2 );
-  pcb[ 3 ].ctx.sp   = ( uint32_t )(  &tos_P2 );
-  entry[ 3 ].pc     = ( uint32_t )( entry_P2 );
-  entry[ 3 ].active = 1;
-  next[ 3 ]         = 0;
-
-  memset( &pcb[ 4 ], 0, sizeof( pcb_t ) );
-  pcb[ 4 ].pid      = 4;
-  pcb[ 4 ].ctx.cpsr = 0x50;
-  pcb[ 4 ].ctx.pc   = ( uint32_t )( entry_Aristotle );
-  pcb[ 4 ].ctx.sp   = ( uint32_t )(  &tos_Aristotle );
-  entry[ 4 ].pc     = ( uint32_t )( entry_Aristotle );
-  entry[ 4 ].active = 1;
-  next[ 4 ]         = 0;
-
-  memset( &pcb[ 5 ], 0, sizeof( pcb_t ) );
-  pcb[ 5 ].pid      = 5;
-  pcb[ 5 ].ctx.cpsr = 0x50;
-  pcb[ 5 ].ctx.pc   = ( uint32_t )( entry_Confucius );
-  pcb[ 5 ].ctx.sp   = ( uint32_t )(  &tos_Confucius );
-  entry[ 5 ].pc     = ( uint32_t )( entry_Confucius );
-  entry[ 5 ].active = 1;
-  next[ 5 ]         = 0;
-
-  memset( &pcb[ 6 ], 0, sizeof( pcb_t ) );
-  pcb[ 6 ].pid      = 6;
-  pcb[ 6 ].ctx.cpsr = 0x50;
-  pcb[ 6 ].ctx.pc   = ( uint32_t )( entry_Descartes );
-  pcb[ 6 ].ctx.sp   = ( uint32_t )(  &tos_Descartes );
-  entry[ 6 ].pc     = ( uint32_t )( entry_Descartes );
-  entry[ 6 ].active = 1;
-  next[ 6 ]         = 0;
-
-  memset( &pcb[ 7 ], 0, sizeof( pcb_t ) );
-  pcb[ 7 ].pid      = 7;
-  pcb[ 7 ].ctx.cpsr = 0x50;
-  pcb[ 7 ].ctx.pc   = ( uint32_t )( entry_Socrates );
-  pcb[ 7 ].ctx.sp   = ( uint32_t )(  &tos_Socrates );
-  entry[ 7 ].pc     = ( uint32_t )( entry_Socrates );
-  entry[ 7 ].active = 1;
-  next[ 7 ]         = 0;
-
-  memset( &pcb[ 8 ], 0, sizeof( pcb_t ) );
-  pcb[ 8 ].pid      = 8;
-  pcb[ 8 ].ctx.cpsr = 0x50;
-  pcb[ 8 ].ctx.pc   = ( uint32_t )( entry_Voltaire );
-  pcb[ 8 ].ctx.sp   = ( uint32_t )(  &tos_Voltaire );
-  entry[ 8 ].pc     = ( uint32_t )( entry_Voltaire );
-  entry[ 8 ].active = 1;
-  next[ 8 ]         = 0;
-
-  memset( &pcb[ 9 ], 0, sizeof( pcb_t ) );
-  pcb[ 9 ].pid      = 9;
-  pcb[ 9 ].ctx.cpsr = 0x50;
-  pcb[ 9 ].ctx.pc   = ( uint32_t )( entry_DiskTest );
-  pcb[ 9 ].ctx.sp   = ( uint32_t )(  &tos_DiskTest );
-  entry[ 9 ].pc     = ( uint32_t )( entry_DiskTest );
-  entry[ 9 ].active = 1;
-  next[ 9 ]         = 9;
-
-  switch(schedType){
-    case 2: {
-      heap_insert(4,30);
-      heap_insert(5,30);
-      heap_insert(6,30);
-      heap_insert(7,30);
-      heap_insert(8,30);
-      next[ 4 ] = 5;
-      next[ 5 ] = 6;
-      next[ 6 ] = 7;
-      next[ 7 ] = 8;
-      next[ 8 ] = 4;
-      current = &pcb[ 4 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
-      break;
-    }
-    case 3: {
-      for(int a=0; a<subBlockNo; a++){
-        used[a] = 0;
-      }
-      for(uint32_t index=0;index<inodeSize;index++){
-        uint8_t block[16];
-        disk_rd(index,block,16);
-        if(block[0] != 0){
-          uint8_t fd;
-          char name[8];
-          uint8_t active;
-          uint8_t blockIndex;
-          uint8_t blockLine;
-          uint8_t lineChar;
-
-          fileList[index].fd     = index+100;
-          fileList[index].active = 1;
-          fileList[index].open = O_CLOSED;
-          for(int k=0; k<8; k++){
-            fileList[index].blocks[k] = block[k];
-          }
-          int j;
-          for(j=8; j<15 && (char) block[j]!='\0'; j++){
-            fileList[index].name[j-8] = (char) block[j];
-          }
-          fileList[index].name[j-8] = '\0';
-          fileList[index].blockIndex = 0;
-          fileList[index].blockLine = 0;
-          fileList[index].lineChar = 0;
-
-          for(int i=0; i<8; i++){
-            if(block[i] != 0){
-              used[block[i]] = 1;
-            }
-          }
-        }
-      }
-      current = &pcb[ 9 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
-      break;
-    }
-    default: {
-      heap_insert(0,5);
-      heap_insert(1,50);
-      heap_insert(2,20);
-      heap_insert(3,30);
-      current = &pcb[ 0 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
-      break;
-    }
-  }
+  heap_insert(0,5);
+  heap_insert(1,50);
+  heap_insert(2,20);
+  current = &pcb[ 0 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
    */
 
-  nAP = 10;
+  nAP = 3;
   TIMER0->Timer1Load     = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl     = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl    |= 0x00000040; // select periodic timer
