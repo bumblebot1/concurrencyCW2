@@ -36,3 +36,5 @@ launch-part3-gdb:
 	(cd Part3; make launch-gdb)
 clean-part3:
 	(cd Part3; make clean)
+
+clean-all: clean-part1 clean-part2-rr	clean-part2-priority clean-part2-IPC clean-part3
