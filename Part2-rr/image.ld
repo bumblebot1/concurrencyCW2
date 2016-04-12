@@ -33,22 +33,4 @@ SECTIONS {
   /* allocate stack for P3       */
   .       = . + 0x00001000;
   tos_P3  = .;
-  /* allocate stack for Aristotle       */
-  .       = . + 0x00001000;
-  tos_Aristotle  = .;
-  /* allocate stack for Confucius       */
-  .       = . + 0x00001000;
-  tos_Confucius  = .;
-  /* allocate stack for Descartes       */
-  .       = . + 0x00001000;
-  tos_Descartes  = .;
-  /* allocate stack for Socrates       */
-  .       = . + 0x00001000;
-  tos_Socrates = .;
-  /* allocate stack for Voltaire       */
-  .       = . + 0x00001000;
-  tos_Voltaire  = .;
-  /* allocate stack for DiskTest       */
-  .       = . + 0x00001000;
-  tos_DiskTest  = .;
 }
