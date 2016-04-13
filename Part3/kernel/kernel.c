@@ -167,8 +167,18 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_DiskTest );
   entry[ 0 ].pc     = ( uint32_t )( entry_DiskTest );
   entry[ 0 ].active = 1;
-  next[ 0 ]         = 0;
+  next[ 0 ]         = 1;
+
+  memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
+  pcb[ 1 ].pid      = 1;
+  pcb[ 1 ].ctx.cpsr = 0x50;
+  pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_ConcDisk );
+  pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_ConcDisk );
+  entry[ 1 ].pc     = ( uint32_t )( entry_ConcDisk );
+  entry[ 1 ].active = 1;
+  next[ 1 ]         = 0;
   heap_insert(0,50);
+  heap_insert(1,50);
 
   for(int a=0; a<subBlockNo; a++){
     used[a] = 0;
@@ -198,6 +208,8 @@ void kernel_handler_rst( ctx_t* ctx              ) {
       fileList[index].blockIndex = 0;
       fileList[index].blockLine = 0;
       fileList[index].lineChar = 0;
+      fileList[index].readID = -1;
+      fileList[index].writeID = -1;
 
       for(int i=0; i<8; i++){
         if(block[i] != 0){
@@ -211,7 +223,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
    * restored (i.e., executed) when the function then returns.
    */
 
-  nAP = 1;
+  nAP = 2;
   TIMER0->Timer1Load     = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl     = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl    |= 0x00000040; // select periodic timer
@@ -282,7 +294,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         for(int i=0;i<inodeSize;i++){
           if(fd == fileList[i].fd){
             //do the write logic
-            if(fileList[i].open == O_WR || fileList[i].open == O_RDWR)
+            if((fileList[i].open == O_WR || fileList[i].open == O_RDWR) && fileList[i].writeID == (*current).pid)
               ctx->gpr[0] = writeFile(i,x,n);
             else
               ctx->gpr[0] = 0;
@@ -311,7 +323,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         for(int i=0;i<inodeSize;i++){
           if(fd == fileList[i].fd){
             //do the write logic
-            if(fileList[i].open == O_RD || fileList[i].open == O_RDWR)
+            if((fileList[i].open == O_RD || fileList[i].open == O_RDWR) && fileList[i].readID == (*current).pid)
               ctx->gpr[0] = readFile(i,x,n);
             else
               ctx->gpr[0] = 0;
@@ -534,9 +546,11 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
           fileList[index].open = O_CLOSED;
           fileList[index].fd = index+100;
           strcpy(fileList[index].name,name);
-          fileList[index].blockIndex=0;
-          fileList[index].blockLine=0;
-          fileList[index].lineChar=0;
+          fileList[index].blockIndex = 0;
+          fileList[index].blockLine  = 0;
+          fileList[index].lineChar   = 0;
+          fileList[index].readID     = -1;
+          fileList[index].writeID    = -1;
           break;
         }
       }
@@ -597,7 +611,16 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       }
       for(int i = 0; i<inodeSize;i++){
         if(strcmp(name,fileList[i].name) == 0){
-          fileList[i].open = (open_t) ctx->gpr[1];
+          if( fileList[i].open != O_CLOSED || fileList[i].active != 1){
+            ctx->gpr[0] = 0;
+            return;
+          }
+          fileList[i].open = mode;
+          int currentID = (*current).pid;
+          if(mode == O_RD || mode == O_RDWR)
+            fileList[i].readID  = currentID;
+          if(mode == O_WR || mode == O_RDWR)
+            fileList[i].writeID = currentID;
           ctx->gpr[0] = (int)fileList[i].fd;
           return;
         }
@@ -612,6 +635,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         if( fd == fileList[i].fd && fileList[i].open != O_CLOSED){
           fileList[i].open = O_CLOSED;
           ctx->gpr[0] = 1;
+          fileList[i].readID     = -1;
+          fileList[i].writeID    = -1;
           return;
         }
       }

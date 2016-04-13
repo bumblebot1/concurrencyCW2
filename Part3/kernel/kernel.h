@@ -15,6 +15,7 @@
 
 // Include definitions relating to the 2 user programs.
 
+#include "ConcDisk.h"
 #include "DiskTest.h"
 #include "fileSys.h"
 
@@ -60,6 +61,8 @@ typedef struct {
   uint8_t blockIndex;
   uint8_t blockLine;
   uint8_t lineChar;
+  int readID;
+  int writeID;
 } file_t;
 
 typedef struct {
