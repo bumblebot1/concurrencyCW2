@@ -434,6 +434,13 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
           break;
         }
       }
+      for(int i=0;i<inodeSize;i++){
+        if( (pid == fileList[i].writeID || pid == fileList[i].readID) && fileList[i].open != O_CLOSED){
+          fileList[i].open = O_CLOSED;
+          fileList[i].readID     = -1;
+          fileList[i].writeID    = -1;
+        }
+      }
       nAP--;
       ctx->gpr[ 0 ] = pid;
       break;
@@ -628,6 +635,9 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
             fileList[i].readID  = currentID;
           if(mode == O_WR || mode == O_RDWR)
             fileList[i].writeID = currentID;
+          fileList[i].blockIndex = 0;
+          fileList[i].lineChar   = 0;
+          fileList[i].blockLine  = 0;
           ctx->gpr[0] = (int)fileList[i].fd;
           return;
         }
