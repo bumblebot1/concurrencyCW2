@@ -24,7 +24,7 @@ uint32_t parseInt(char* str){
 void Sh() {
   while( 1 ) {
     char str[1000];
-    printf("$ ");
+    printf("[raul@concurrency]$ ");
     int x = readLine(0,str);
     char* token = strtok(str," ");
     uint32_t args = 0;
@@ -117,7 +117,6 @@ void Sh() {
 
     }
     else{
-      printf("\n");
     }
   }
 }
