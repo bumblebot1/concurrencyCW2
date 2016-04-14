@@ -21,11 +21,10 @@ heap_t heap[ heapSize ];
 uint32_t nAP  = 0; //number of active proceses
 uint32_t nDCP = 0; //number of dynamically create processes
 uint32_t next[maxProcesses];
-uint32_t slice = 1;
 heap_t res;
 chan_t channels[maxProcesses];
 uint32_t nChans = 0;
-uint8_t schedType = 0;
+uint8_t schedType = 1;
 uint8_t used[subBlockSize]; //disk subblock used/unused
 file_t fileList[inodeSize];
 
