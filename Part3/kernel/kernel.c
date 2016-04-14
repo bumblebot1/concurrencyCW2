@@ -697,16 +697,19 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
             fileList[fileIndex].blockIndex = j-1;
           }
           else{
-            fileList[fileIndex].blockIndex = 0;
+            ctx->gpr[0] = 0;
+            return;
           }
           fileList[fileIndex].blockLine  = 255;
           fileList[fileIndex].lineChar   = 15;
+          ctx->gpr[0] = 1;
           break;
         }
         case SEEK_START:{
           fileList[fileIndex].blockIndex = 0;
           fileList[fileIndex].blockLine  = 0;
           fileList[fileIndex].lineChar   = 0;
+          ctx->gpr[0] = 1;
           break;
         }
         default:{
