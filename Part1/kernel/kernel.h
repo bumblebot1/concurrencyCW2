@@ -29,47 +29,49 @@
  * - a type that captures a process PCB.
  */
 
-typedef struct {
-  uint32_t cpsr, pc, gpr[ 13 ], sp, lr;
-} ctx_t;
+ typedef struct {
+   uint32_t cpsr, pc, gpr[ 13 ], sp, lr;
+ } ctx_t;
 
-typedef int pid_t;
+ typedef int pid_t;
 
-typedef struct {
-  pid_t pid;
-  ctx_t ctx;
-  uint8_t block;
-} pcb_t;
+ typedef struct {
+   pid_t pid;
+   ctx_t ctx;
+   uint8_t block;
+ } pcb_t;
 
-typedef struct {
-  uint32_t pc;
-  uint8_t active;
-} entry_t;
+ typedef struct {
+   uint32_t pc;
+   uint8_t active;
+ } entry_t;
 
-typedef struct {
-  uint32_t wt;
-  pid_t pid;
-} heap_t;
+ typedef struct {
+   uint32_t wt;
+   pid_t pid;
+ } heap_t;
 
-typedef struct {
-  uint32_t fd;
-  uint8_t blocks[8];
-  char name[8];
-  uint8_t active;
-  open_t open;
-  uint8_t blockIndex;
-  uint8_t blockLine;
-  uint8_t lineChar;
-} file_t;
+ typedef struct {
+   uint32_t fd;
+   uint8_t blocks[8];
+   char name[8];
+   uint8_t active;
+   open_t open;
+   uint8_t blockIndex;
+   uint8_t blockLine;
+   uint8_t lineChar;
+   int readID;
+   int writeID;
+ } file_t;
 
-typedef struct {
-  void* chan;
-  pid_t readID;
-  pid_t writeID;
-  uint8_t active;
-  uint8_t ready;
-} chan_t;
+ typedef struct {
+   void* chan;
+   pid_t readID;
+   pid_t writeID;
+   uint8_t active;
+   uint8_t ready;
+ } chan_t;
 
-extern uint32_t boh;
+ extern uint32_t boh;
 
-#endif
+ #endif

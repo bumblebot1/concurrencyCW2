@@ -270,7 +270,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         for(int i=0;i<inodeSize;i++){
           if(fd == fileList[i].fd){
             //do the write logic
-            if(fileList[i].open == O_WR || fileList[i].open == O_RDWR)
+            if((fileList[i].open == O_WR || fileList[i].open == O_RDWR) && fileList[i].writeID == (*current).pid)
               ctx->gpr[0] = writeFile(i,x,n);
             else
               ctx->gpr[0] = 0;
@@ -299,7 +299,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         for(int i=0;i<inodeSize;i++){
           if(fd == fileList[i].fd){
             //do the write logic
-            if(fileList[i].open == O_RD || fileList[i].open == O_RDWR)
+            if((fileList[i].open == O_RD || fileList[i].open == O_RDWR) && fileList[i].readID == (*current).pid)
               ctx->gpr[0] = readFile(i,x,n);
             else
               ctx->gpr[0] = 0;
@@ -404,6 +404,13 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
           next[ pid ] = heapSize;
           heap_remove(pid);
           break;
+        }
+      }
+      for(int i=0;i<inodeSize;i++){
+        if( (pid == fileList[i].writeID || pid == fileList[i].readID) && fileList[i].open != O_CLOSED){
+          fileList[i].open = O_CLOSED;
+          fileList[i].readID     = -1;
+          fileList[i].writeID    = -1;
         }
       }
       nAP--;
@@ -525,9 +532,11 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
           fileList[index].open = O_CLOSED;
           fileList[index].fd = index+100;
           strcpy(fileList[index].name,name);
-          fileList[index].blockIndex=0;
-          fileList[index].blockLine=0;
-          fileList[index].lineChar=0;
+          fileList[index].blockIndex = 0;
+          fileList[index].blockLine  = 0;
+          fileList[index].lineChar   = 0;
+          fileList[index].readID     = -1;
+          fileList[index].writeID    = -1;
           break;
         }
       }
@@ -567,6 +576,9 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
               used[fileList[i].blocks[j]] = 0;
             }
             disk_wr(i,block,16);
+            for(int k=0;k<8;k++){
+              fileList[i].name[k] = '\0';
+            }
             fileList[i].active = 0;
             ctx->gpr[0] = 1;
             return;
@@ -585,7 +597,19 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       }
       for(int i = 0; i<inodeSize;i++){
         if(strcmp(name,fileList[i].name) == 0){
-          fileList[i].open = (open_t) ctx->gpr[1];
+          if( fileList[i].open != O_CLOSED || fileList[i].active != 1){
+            ctx->gpr[0] = 0;
+            return;
+          }
+          fileList[i].open = mode;
+          int currentID = (*current).pid;
+          if(mode == O_RD || mode == O_RDWR)
+            fileList[i].readID  = currentID;
+          if(mode == O_WR || mode == O_RDWR)
+            fileList[i].writeID = currentID;
+          fileList[i].blockIndex = 0;
+          fileList[i].lineChar   = 0;
+          fileList[i].blockLine  = 0;
           ctx->gpr[0] = (int)fileList[i].fd;
           return;
         }
@@ -600,6 +624,8 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         if( fd == fileList[i].fd && fileList[i].open != O_CLOSED){
           fileList[i].open = O_CLOSED;
           ctx->gpr[0] = 1;
+          fileList[i].readID     = -1;
+          fileList[i].writeID    = -1;
           return;
         }
       }
@@ -643,16 +669,19 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
             fileList[fileIndex].blockIndex = j-1;
           }
           else{
-            fileList[fileIndex].blockIndex = 0;
+            ctx->gpr[0] = 0;
+            return;
           }
           fileList[fileIndex].blockLine  = 255;
           fileList[fileIndex].lineChar   = 15;
+          ctx->gpr[0] = 1;
           break;
         }
         case SEEK_START:{
           fileList[fileIndex].blockIndex = 0;
           fileList[fileIndex].blockLine  = 0;
           fileList[fileIndex].lineChar   = 0;
+          ctx->gpr[0] = 1;
           break;
         }
         default:{
