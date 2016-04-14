@@ -404,6 +404,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       for(uint32_t i =0; i <= lastPindex; i++){
         if(next[ i ] == pid){
           if(pid == (*current).pid){
+            slice = 2;
             scheduler(ctx);
           }
           next[ i ] = next[ pid ];
