@@ -28,7 +28,7 @@ int makeChan(int pidWrite,int pidRead);
 
 int writeChan(int id,void* value);
 
-void* readChan(int id);
+int readChan(int id,void* value);
 
 int closeChan(int id);
 
