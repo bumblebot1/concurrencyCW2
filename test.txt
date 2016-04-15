@@ -1,3 +1,0 @@
-(cd Part2-IPC; make launch-qemu)
-make[1]: Entering directory '/home/raul/concurrencyCW2/Part2-IPC'
-Makefile:10: recipe for target 'launch-part2-IPC-qemu' failed
