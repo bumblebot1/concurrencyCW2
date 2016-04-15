@@ -38,5 +38,8 @@ clean-part3:
 	(cd Part3; make clean)
 disk-part3:
 	(cd Part3; cd device; python disk.py --host=127.0.0.1 --port=1235 --file=disk.bin --block-num=65536 --block-len=16 )
+reset-disk:
+	(cd Part3; cd device; dd of=disk.bin if=/dev/zero count=1048576 bs=1)
 
 clean-all: clean-part1 clean-part2-rr	clean-part2-priority clean-part2-IPC clean-part3
+

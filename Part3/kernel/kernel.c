@@ -834,6 +834,9 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
             return start;
           }
           else{
+            for(int i=0;i<8;i++){
+              fileList[id].blocks[i] = blocks[i];
+            }
             uint8_t inode[16];
             disk_rd(id,inode,16);
             for(int a=0;a<8;a++){
@@ -886,6 +889,9 @@ int writeFile(int id,char* x,int n){ //id=index of file in list
               return start;
             }
             else{
+              for(int i=0;i<8;i++){
+                fileList[id].blocks[i] = blocks[i];
+              }
               uint8_t inode[16];
               disk_rd(id,inode,16);
               for(int a=0;a<8;a++){

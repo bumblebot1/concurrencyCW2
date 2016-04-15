@@ -7,7 +7,7 @@ void ConcDisk() {
   y[x] = '\0';
   printf("Finish %d\n",x );
   printf(y);*/
-  int fd =open("test",O_RD);
+  /*int fd =open("test",O_RD);
   char y[400];
   y[0]='h';
   y[1]='i';
@@ -17,6 +17,7 @@ void ConcDisk() {
   int x = read(fd,y,5);
   printf("%d This is from the second opening process\n",x);
   printf(y);
+  */
   while( 1 ) {
   }
 
