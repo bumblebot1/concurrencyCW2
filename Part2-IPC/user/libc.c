@@ -68,7 +68,6 @@ char* intToString(int x,char* toReturn,int* len){
 void printf(char* str,...){
   char* x = str;
   unsigned int i;
-  char* s;
 
   va_list arg;
   va_start(arg,str);
@@ -189,7 +188,7 @@ int writeChan(int id,void* value){
               : "=r" (r)
               : "r" (id), "r" (value)
               : "r0");
-              
+
   return r;
 }
 

@@ -68,7 +68,6 @@ char* intToString(int x,char* toReturn,int* len){
 void printf(char* str,...){
   char* x = str;
   unsigned int i;
-  char* s;
 
   va_list arg;
   va_start(arg,str);
