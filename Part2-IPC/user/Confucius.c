@@ -5,15 +5,20 @@ void Confucius() {
   int b = makeChan(2,1);
   int c = makeChan(1,0);//left
   int d = makeChan(0,1);
-  int x = 0;
+  int x = 3;
+  int y = 4;
+  int t = 0;
+  int z = 0;
+  void* send;
   while(1){
     printf("Confucius Thinking\n");
-    x = (int) readChan(d);
-    x = (int) readChan(b);
-    printf("Confucius eating\n");
-    writeChan(a,(void*)1);
-    writeChan(c,(void*)1);
-
+    t = *((int*) readChan(b));
+    z = *((int*) readChan(d));
+    printf("Confucius eating %d %d\n",t,z);
+    send = &x;
+    writeChan(a,send);
+    send = &y;
+    writeChan(c,send);
   }
 }
 

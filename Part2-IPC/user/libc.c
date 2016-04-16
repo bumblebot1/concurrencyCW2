@@ -185,9 +185,11 @@ int writeChan(int id,void* value){
   asm volatile( "mov r0, %1 \n"
                 "mov r1, %2 \n"
                 "svc #7     \n"
+                "mov %0, r0 \n"
               : "=r" (r)
-              : "r" (id), "r" (value));
-
+              : "r" (id), "r" (value)
+              : "r0");
+              
   return r;
 }
 
@@ -205,19 +207,19 @@ int blockChan(int id){
 }
 
 void* readChan(int id){
-  void* r;
+  int r;
+  void** value;
   while(blockChan(id)){
 
   }
-
   asm volatile( "mov r0, %1 \n"
+                "mov r1, %2 \n"
                 "svc #8     \n"
                 "mov %0, r0 \n"
               : "=r" (r)
-              : "r" (id)
+              : "r" (id), "r" (value)
               : "r0");
-
-  return r;
+  return *value;
 }
 
 int closeChan(int id){

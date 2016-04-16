@@ -5,14 +5,20 @@ void Voltaire() {
   int b = makeChan(0,4);
   int c = makeChan(4,3);//left
   int d = makeChan(3,4);
-  int x = 0;
+  int x = 9;
+  int y = 10;
+  int t = 0;
+  int z = 0;
+  void* send;
   while(1){
     printf("Voltaire Thinking\n");
-    x = (int) readChan(b);
-    x = (int) readChan(d);
-    printf("Voltaire eating\n");
-    writeChan(a,(void*)1);
-    writeChan(c,(void*)1);
+    t = *((int*) readChan(b));
+    z = *((int*) readChan(d));
+    printf("Voltaire eating %d %d \n",t,z);
+    send = &x;
+    writeChan(a,send);
+    send = &y;
+    writeChan(c,send);
   }
 }
 

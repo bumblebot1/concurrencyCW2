@@ -5,14 +5,20 @@ void Socrates() {
   int b = makeChan(4,3);
   int c = makeChan(3,2);//left
   int d = makeChan(2,3);
-  int x = 0;
+  int x = 7;
+  int y = 8;
+  void* send;
+  int t = 0;
+  int z = 0;
   while(1){
-    x = (int) readChan(d);
-    printf("Socrates eating\n");
-    writeChan(a,(void*)1);
-    writeChan(c,(void*)1);
+    t = *((int*) readChan(d));
+    printf("Socrates eating %d %d\n",t,z);
+    send = &x;
+    writeChan(a,send);
+    send = &y;
+    writeChan(c,send);
     printf("Socrates Thinking\n");
-    x = (int) readChan(b);
+    z = *((int*) readChan(b));
   }
 }
 

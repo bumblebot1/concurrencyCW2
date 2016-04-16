@@ -5,14 +5,20 @@ void Descartes() {
   int b = makeChan(3,2);
   int c = makeChan(2,1);//left
   int d = makeChan(1,2);
-  int x = 0;
+  int x = 5;
+  int y = 6;
+  int t = 0;
+  int z = 0;
+  void* send;
   while(1){
-    printf("Descartes eating\n");
-    writeChan(a,(void*)1);
-    writeChan(c,(void*)1);
+    printf("Descartes eating %d %d\n",t,z);
+    send = &x;
+    writeChan(a,send);
+    send = &y;
+    writeChan(c,send);
     printf("Descartes Thinking\n");
-    x = (int) readChan(d);
-    x = (int) readChan(b);
+    t = *((int*) readChan(b));
+    z = *((int*) readChan(d));
   }
 }
 

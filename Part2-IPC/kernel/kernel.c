@@ -23,6 +23,7 @@ uint32_t nDCP = 0; //number of dynamically create processes
 uint32_t next[maxProcesses];
 heap_t res;
 chan_t channels[maxProcesses];
+uint32_t slice = 0;
 uint32_t nChans = 0;
 uint8_t schedType = 1;
 uint8_t used[subBlockSize]; //disk subblock used/unused
@@ -478,30 +479,32 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       int blockID = channels[ cid ].writeID;
       int unblockID = channels[ cid ].readID;
       channels[ cid ].ready = 1;
+      ctx->gpr[ 0 ] = 1;
       blockProc(blockID);
       unblockProc(unblockID);
       scheduler(ctx);
-      ctx->gpr[ 0 ] = 1;
       break;
     }
 
 
     case 0x08: {  //void* readChan(int id);
       int cid        = (int   ) ctx->gpr[ 0 ];
-      void * toReturn;
+      void** value   = (void**) ctx->gpr[ 1 ];
+      void* toReturn;
       if(channels[cid].active == 0){
         toReturn = NULL;
-        ctx->gpr[ 0 ] = (uint32_t) (toReturn);
+        *value = toReturn;
+        ctx->gpr[ 0 ] = 0;
         break;
       }
       toReturn = channels[ cid ].chan;
-      ctx->gpr[ 0 ]  = (uint32_t) (toReturn);
+      *value = toReturn;
+      ctx->gpr[ 0 ]  = 1;
       int unblockID = channels[ cid ].writeID;
       int blockID = channels[ cid ].readID;
       channels[ cid ].ready = 0;
       blockProc(blockID);
       unblockProc(unblockID);
-      scheduler(ctx);
       break;
     }
 

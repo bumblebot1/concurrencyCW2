@@ -5,14 +5,20 @@ void Aristotle() {
   int b = makeChan(1,0);
   int c = makeChan(0,4);//left
   int d = makeChan(4,0);
-  int x = 0;
+  int x = 1;
+  int y = 2;
+  int t = 0;
+  int z = 0;
+  void* send;
   while(1){
-    printf("Aristotle eating\n");
-    writeChan(a,(void*)1);
-    writeChan(c,(void*)1);
+    printf("Aristotle eating %d %d\n",t,z);
+    send = &x;
+    writeChan(a,send);
+    send = &y;
+    writeChan(c,send);
     printf("Aristotle Thinking\n");
-    x = (int) readChan(d);
-    x = (int) readChan(b);
+    t = *((int*) readChan(b));
+    z = *((int*) readChan(d));
   }
 }
 
