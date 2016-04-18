@@ -505,6 +505,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       channels[ cid ].ready = 0;
       blockProc(blockID);
       unblockProc(unblockID);
+      scheduler(ctx);
       break;
     }
 
@@ -515,10 +516,10 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       if(channels[ cid ].ready == 0){
         int unblockID = channels[ cid ].writeID;
         int blockID = channels[ cid ].readID;
+        ctx->gpr[0] = 1;
         blockProc(blockID);
         unblockProc(unblockID);
         scheduler(ctx);
-        ctx->gpr[0] = 1;
         break;
       }
       ctx->gpr[0] = 0;
