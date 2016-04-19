@@ -23,6 +23,7 @@ uint32_t nDCP = 0; //number of dynamically create processes
 uint32_t next[maxProcesses];
 heap_t res;
 chan_t channels[maxProcesses];
+int noProcsInHeap = 0;
 uint32_t slice = 0;
 uint32_t nChans = 0;
 uint8_t schedType = 1;
@@ -79,6 +80,7 @@ int heap_insert(pid_t pid, uint32_t wt ){
   heap[ i ].wt  = wt;
   heap[ i ].pid = pid;
   heap_decreaseKey(pid,wt);
+  noProcsInHeap ++;
   return 1;
 }
 
@@ -99,6 +101,7 @@ heap_t heap_extractMin(){
     heap[ min ] = aux;
     i = min;
   }
+  noProcsInHeap --;
   return toReturn;
 }
 
@@ -463,7 +466,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       pcb[ blockID ].chanblock = cid;
       if(pcb[unblockID].chanblock == maxProcesses+1 || pcb[unblockID].chanblock == cid){
         unblockProc(unblockID);
-        pcb[ unblockID ].chanblock = 1001;
+        pcb[ unblockID ].chanblock = maxProcesses+1;
       }
       scheduler(ctx);
       break;
@@ -488,7 +491,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       channels[ cid ].ready = 0;
       if(pcb[unblockID].chanblock == maxProcesses+1 || pcb[unblockID].chanblock == cid){
         unblockProc(unblockID);
-        pcb[ unblockID ].chanblock = 1001;
+        pcb[ unblockID ].chanblock = maxProcesses+1;
       }
       break;
     }
@@ -507,7 +510,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         }
         if(pcb[unblockID].chanblock == maxProcesses+1 || pcb[unblockID].chanblock == cid){
           unblockProc(unblockID);
-          pcb[ unblockID ].chanblock = 1001;
+          pcb[ unblockID ].chanblock = maxProcesses+1;
         }
         scheduler(ctx);
         break;
