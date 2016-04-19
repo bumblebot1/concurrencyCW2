@@ -558,6 +558,10 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       int i=0;
       uint32_t index = 0;
       for (index = 0; index<inodeSize; index++){
+        if(strcmp(fileList[index].name,name)==0){
+          ctx->gpr[0] = 0;
+          return;
+        }
         if(fileList[index].active==0){
           ok=1;
           fileList[index].active = 1;
