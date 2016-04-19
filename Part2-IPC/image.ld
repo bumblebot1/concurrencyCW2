@@ -18,19 +18,10 @@ SECTIONS {
   /* allocate bottom of heap kernel*/
   boh     = .;
   .       = . + 0x00800000;
-  /* allocate stack for Aristotle       */
+  /* allocate stack for P0       */
   .       = . + 0x00001000;
-  tos_Aristotle  = .;
-  /* allocate stack for Confucius       */
+  tos_P0  = .;
+  /* allocate stack for P1       */
   .       = . + 0x00001000;
-  tos_Confucius  = .;
-  /* allocate stack for Descartes       */
-  .       = . + 0x00001000;
-  tos_Descartes  = .;
-  /* allocate stack for Socrates       */
-  .       = . + 0x00001000;
-  tos_Socrates = .;
-  /* allocate stack for Voltaire       */
-  .       = . + 0x00001000;
-  tos_Voltaire  = .;
+  tos_P1  = .;
 }

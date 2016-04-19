@@ -163,65 +163,31 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
   pcb[ 0 ].pid      = 0;
   pcb[ 0 ].ctx.cpsr = 0x50;
-  pcb[ 0 ].ctx.pc   = ( uint32_t )( entry_Aristotle );
-  pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_Aristotle );
+  pcb[ 0 ].ctx.pc   = ( uint32_t )( entry_P0 );
+  pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_P0 );
   pcb[ 0 ].chanblock= maxProcesses+1;
-  entry[ 0 ].pc     = ( uint32_t )( entry_Aristotle );
+  entry[ 0 ].pc     = ( uint32_t )( entry_P0 );
   entry[ 0 ].active = 1;
   next[ 0 ]         = 1;
 
   memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
   pcb[ 1 ].pid      = 1;
   pcb[ 1 ].ctx.cpsr = 0x50;
-  pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_Confucius );
-  pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_Confucius );
+  pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_P1 );
+  pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_P1 );
   pcb[ 1 ].chanblock= maxProcesses+1;
-  entry[ 1 ].pc     = ( uint32_t )( entry_Confucius );
+  entry[ 1 ].pc     = ( uint32_t )( entry_P1 );
   entry[ 1 ].active = 1;
-  next[ 1 ]         = 2;
-
-  memset( &pcb[ 2 ], 0, sizeof( pcb_t ) );
-  pcb[ 2 ].pid      = 2;
-  pcb[ 2 ].ctx.cpsr = 0x50;
-  pcb[ 2 ].ctx.pc   = ( uint32_t )( entry_Descartes );
-  pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_Descartes );
-  pcb[ 2 ].chanblock= maxProcesses+1;
-  entry[ 2 ].pc     = ( uint32_t )( entry_Descartes );
-  entry[ 2 ].active = 1;
-  next[ 2 ]         = 3;
-
-  memset( &pcb[ 3 ], 0, sizeof( pcb_t ) );
-  pcb[ 3 ].pid      = 3;
-  pcb[ 3 ].ctx.cpsr = 0x50;
-  pcb[ 3 ].ctx.pc   = ( uint32_t )( entry_Socrates );
-  pcb[ 3 ].ctx.sp   = ( uint32_t )(  &tos_Socrates );
-  pcb[ 3 ].chanblock= maxProcesses+1;
-  entry[ 3 ].pc     = ( uint32_t )( entry_Socrates );
-  entry[ 3 ].active = 1;
-  next[ 3 ]         = 4;
-
-  memset( &pcb[ 4 ], 0, sizeof( pcb_t ) );
-  pcb[ 4 ].pid      = 4;
-  pcb[ 4 ].ctx.cpsr = 0x50;
-  pcb[ 4 ].ctx.pc   = ( uint32_t )( entry_Voltaire );
-  pcb[ 4 ].ctx.sp   = ( uint32_t )(  &tos_Voltaire );
-  pcb[ 4 ].chanblock= maxProcesses+1;
-  entry[ 4 ].pc     = ( uint32_t )( entry_Voltaire );
-  entry[ 4 ].active = 1;
-  next[ 4 ]         = 0;
-
+  next[ 1 ]         = 0;
 
   heap_insert(0,30);
   heap_insert(1,30);
-  heap_insert(2,30);
-  heap_insert(3,30);
-  heap_insert(4,30);
   current = &pcb[ 0 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
    */
 
-  nAP = 5;
+  nAP = 2;
   TIMER0->Timer1Load     = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl     = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl    |= 0x00000040; // select periodic timer
