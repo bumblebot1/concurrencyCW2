@@ -46,14 +46,14 @@ void rrScheduler( ctx_t* ctx ) {
   current = &pcb[ nxt ];
 }
 
-void heap_decreaseKey(pid_t pid, uint32_t wt){
+int heap_decreaseKey(pid_t pid, uint32_t wt){
   uint32_t i;
   for(i=1; i<=maxProcesses; i++){
     if( heap[ i ].pid == pid)
       break;
   }
-  if(heap[i].wt < wt)
-    return;
+  if(i>maxProcesses || heap[i].wt < wt)
+    return 0;
   else{
     heap[i].wt = wt;
     uint32_t parent = i/2;
@@ -65,17 +65,21 @@ void heap_decreaseKey(pid_t pid, uint32_t wt){
       parent = i/2;
     }
   }
+  return 1;
 }
 
-void heap_insert(pid_t pid, uint32_t wt ){
+int heap_insert(pid_t pid, uint32_t wt ){
   uint32_t i;
   for(i=1; i<=maxProcesses; i++){
     if( heap[i].pid == heapSize )
       break;
   }
+  if(i>maxProcesses)
+    return 0;
   heap[ i ].wt  = wt;
   heap[ i ].pid = pid;
   heap_decreaseKey(pid,wt);
+  return 1;
 }
 
 heap_t heap_extractMin(){
@@ -98,9 +102,13 @@ heap_t heap_extractMin(){
   return toReturn;
 }
 
-void heap_remove(pid_t pid){
-  heap_decreaseKey(pid,0);
-  heap_extractMin();
+int heap_remove(pid_t pid){
+  if( heap_decreaseKey(pid,0) == 0)
+    return 0;
+  else{
+    heap_extractMin();
+    return 1;
+  }
 }
 
 void prScheduler(ctx_t* ctx){
