@@ -165,6 +165,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 0 ].ctx.cpsr = 0x50;
   pcb[ 0 ].ctx.pc   = ( uint32_t )( entry_Aristotle );
   pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_Aristotle );
+  pcb[ 0 ].chanblock= maxProcesses+1;
   entry[ 0 ].pc     = ( uint32_t )( entry_Aristotle );
   entry[ 0 ].active = 1;
   next[ 0 ]         = 1;
@@ -174,6 +175,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 1 ].ctx.cpsr = 0x50;
   pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_Confucius );
   pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_Confucius );
+  pcb[ 1 ].chanblock= maxProcesses+1;
   entry[ 1 ].pc     = ( uint32_t )( entry_Confucius );
   entry[ 1 ].active = 1;
   next[ 1 ]         = 2;
@@ -183,6 +185,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 2 ].ctx.cpsr = 0x50;
   pcb[ 2 ].ctx.pc   = ( uint32_t )( entry_Descartes );
   pcb[ 2 ].ctx.sp   = ( uint32_t )(  &tos_Descartes );
+  pcb[ 2 ].chanblock= maxProcesses+1;
   entry[ 2 ].pc     = ( uint32_t )( entry_Descartes );
   entry[ 2 ].active = 1;
   next[ 2 ]         = 3;
@@ -192,6 +195,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 3 ].ctx.cpsr = 0x50;
   pcb[ 3 ].ctx.pc   = ( uint32_t )( entry_Socrates );
   pcb[ 3 ].ctx.sp   = ( uint32_t )(  &tos_Socrates );
+  pcb[ 3 ].chanblock= maxProcesses+1;
   entry[ 3 ].pc     = ( uint32_t )( entry_Socrates );
   entry[ 3 ].active = 1;
   next[ 3 ]         = 4;
@@ -201,6 +205,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 4 ].ctx.cpsr = 0x50;
   pcb[ 4 ].ctx.pc   = ( uint32_t )( entry_Voltaire );
   pcb[ 4 ].ctx.sp   = ( uint32_t )(  &tos_Voltaire );
+  pcb[ 4 ].chanblock= maxProcesses+1;
   entry[ 4 ].pc     = ( uint32_t )( entry_Voltaire );
   entry[ 4 ].active = 1;
   next[ 4 ]         = 0;
@@ -481,7 +486,11 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       channels[ cid ].ready = 1;
       ctx->gpr[ 0 ] = 1;
       blockProc(blockID);
-      unblockProc(unblockID);
+      pcb[ blockID ].chanblock = cid;
+      if(pcb[unblockID].chanblock == maxProcesses+1 || pcb[unblockID].chanblock == cid){
+        unblockProc(unblockID);
+        pcb[ unblockID ].chanblock = 1001;
+      }
       scheduler(ctx);
       break;
     }
@@ -503,9 +512,10 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       int unblockID = channels[ cid ].writeID;
       int blockID = channels[ cid ].readID;
       channels[ cid ].ready = 0;
-      blockProc(blockID);
-      unblockProc(unblockID);
-      scheduler(ctx);
+      if(pcb[unblockID].chanblock == maxProcesses+1 || pcb[unblockID].chanblock == cid){
+        unblockProc(unblockID);
+        pcb[ unblockID ].chanblock = 1001;
+      }
       break;
     }
 
@@ -517,8 +527,14 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         int unblockID = channels[ cid ].writeID;
         int blockID = channels[ cid ].readID;
         ctx->gpr[0] = 1;
-        blockProc(blockID);
-        unblockProc(unblockID);
+        if(pcb[ blockID ].block == 0){
+          blockProc(blockID);
+          pcb[ blockID ].chanblock = cid;
+        }
+        if(pcb[unblockID].chanblock == maxProcesses+1 || pcb[unblockID].chanblock == cid){
+          unblockProc(unblockID);
+          pcb[ unblockID ].chanblock = 1001;
+        }
         scheduler(ctx);
         break;
       }
