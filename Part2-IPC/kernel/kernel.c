@@ -47,6 +47,14 @@ void rrScheduler( ctx_t* ctx ) {
   current = &pcb[ nxt ];
 }
 
+int heap_search(pid_t pid){
+  for(int i = 1; i <= maxProcesses; i++){
+    if(heap[ i ].pid == pid)
+      return 1;
+  }
+  return 0;
+}
+
 int heap_decreaseKey(pid_t pid, uint32_t wt){
   uint32_t i;
   for(i=1; i<=maxProcesses; i++){
@@ -145,12 +153,20 @@ void scheduler(ctx_t* ctx){
 }
 
 void blockProc(int pid){
+  PL011_puth(UART0,noProcsInHeap);
+  PL011_putc(UART0,'\n');
+  if(noProcsInHeap == 1){
+    while(1){
+
+    }
+  }
   heap_remove(pid);
   pcb[ pid ].block = 1;
 }
 
 void unblockProc(int pid){
-  heap_insert(pid,50);
+  if(!heap_search(pid))
+    heap_insert(pid,50);
   pcb[ pid ].block = 0;
 }
 
@@ -211,7 +227,6 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   GICD0->CTLR            = 0x00000001; // enable GIC distributor
 
   irq_enable();
-
 
   return;
 }
@@ -453,7 +468,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x07: {  //int writeChan(int id,void* value);
       int cid        = (int    ) ctx->gpr[ 0 ];
       void* value    = (void*  ) ctx->gpr[ 1 ];
-      if(channels[cid].active == 0){
+      if(channels[cid].active == 0 || channels[ cid ].writeID != (*current).pid){
         ctx->gpr[ 0 ] = 0;
         break;
       }
@@ -462,12 +477,12 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       int unblockID = channels[ cid ].readID;
       channels[ cid ].ready = 1;
       ctx->gpr[ 0 ] = 1;
-      blockProc(blockID);
-      pcb[ blockID ].chanblock = cid;
       if(pcb[unblockID].chanblock == maxProcesses+1 || pcb[unblockID].chanblock == cid){
         unblockProc(unblockID);
         pcb[ unblockID ].chanblock = maxProcesses+1;
       }
+      blockProc(blockID);
+      pcb[ blockID ].chanblock = cid;
       scheduler(ctx);
       break;
     }
@@ -477,7 +492,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       int cid        = (int   ) ctx->gpr[ 0 ];
       void** value   = (void**) ctx->gpr[ 1 ];
       void* toReturn;
-      if(channels[cid].active == 0){
+      if(channels[cid].active == 0 || channels[ cid ].readID != (*current).pid){
         toReturn = NULL;
         *value = toReturn;
         ctx->gpr[ 0 ] = 0;
@@ -504,13 +519,13 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
         int unblockID = channels[ cid ].writeID;
         int blockID = channels[ cid ].readID;
         ctx->gpr[0] = 1;
-        if(pcb[ blockID ].block == 0){
-          blockProc(blockID);
-          pcb[ blockID ].chanblock = cid;
-        }
         if(pcb[unblockID].chanblock == maxProcesses+1 || pcb[unblockID].chanblock == cid){
           unblockProc(unblockID);
           pcb[ unblockID ].chanblock = maxProcesses+1;
+        }
+        if(pcb[ blockID ].block == 0){
+          blockProc(blockID);
+          pcb[ blockID ].chanblock = cid;
         }
         scheduler(ctx);
         break;
