@@ -22,6 +22,7 @@
 #include "P4.h"
 #include "P5.h"
 #include "P6.h"
+#include "P7.h"
 
 #include "disk.h"
 /* The kernel source code is made simpler by three type definitions:
