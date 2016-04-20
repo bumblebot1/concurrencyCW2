@@ -8,7 +8,7 @@ void P1() {
   int next   = 0;
   int val = 0;
   int lowest = *((int*) readChan(a));
-  for(int i=0;i<3;i++){
+  for(int i=0;i<4;i++){
     next = *((int *) readChan(a));
     if(next>=lowest){
       val = next;
