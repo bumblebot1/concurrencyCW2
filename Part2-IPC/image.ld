@@ -42,4 +42,7 @@ SECTIONS {
   /* allocate stack for P7       */
   .       = . + 0x00001000;
   tos_P7  = .;
+  /* allocate stack for P8       */
+  .       = . + 0x00001000;
+  tos_P8  = .;
 }

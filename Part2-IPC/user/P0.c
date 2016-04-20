@@ -10,6 +10,7 @@ void P0() {
   int k4 = 231;
   int k5 = 39;
   int k6 = 1239;
+  int k7 = 75;
   send = &k1;
   writeChan(a,send);
   send = &k2;
@@ -21,6 +22,8 @@ void P0() {
   send = &k5;
   writeChan(a,send);
   send = &k6;
+  writeChan(a,send);
+  send = &k7;
   writeChan(a,send);
   while(1){}
 }
