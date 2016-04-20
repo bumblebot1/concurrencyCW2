@@ -1,12 +1,12 @@
-#include "P1.h"
+#include "P2.h"
 
-void P1() {
-  int a = makeChan(0,1);//left
-  int b = makeChan(1,2);
+void P2() {
+  int a = makeChan(1,2);//left
+  int b = makeChan(2,3);
   int t = 0;
   void* send;
-  int next   = 0;
   int val = 0;
+  int next   = 0;
   int lowest = *((int*) readChan(a));
   for(int i=0;i<2;i++){
     next = *((int *) readChan(a));
@@ -27,4 +27,4 @@ void P1() {
   while(1){}
 }
 
-void (*entry_P1)() = &P1;
+void (*entry_P2)() = &P2;
