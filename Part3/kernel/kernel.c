@@ -671,7 +671,7 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       int fd = (int) ctx->gpr[0];
       int offset = (int) ctx->gpr[1];
       seek_t mode = ctx->gpr[2];
-      int fileIndex = 0;
+      int fileIndex = -1;
       for(int i=0;i<inodeSize;i++){
         if(fd == fileList[i].fd){
           //check file is actually open
@@ -682,6 +682,11 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
             return;
           }
         }
+      }
+
+      if(fileIndex == -1){
+        ctx->gpr[0] = 0;
+        return;
       }
 
       switch(mode){
