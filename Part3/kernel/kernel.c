@@ -179,18 +179,9 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 0 ].ctx.sp   = ( uint32_t )(  &tos_DiskTest );
   entry[ 0 ].pc     = ( uint32_t )( entry_DiskTest );
   entry[ 0 ].active = 1;
-  next[ 0 ]         = 1;
+  next[ 0 ]         = 0;
 
-  memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
-  pcb[ 1 ].pid      = 1;
-  pcb[ 1 ].ctx.cpsr = 0x50;
-  pcb[ 1 ].ctx.pc   = ( uint32_t )( entry_ConcDisk );
-  pcb[ 1 ].ctx.sp   = ( uint32_t )(  &tos_ConcDisk );
-  entry[ 1 ].pc     = ( uint32_t )( entry_ConcDisk );
-  entry[ 1 ].active = 1;
-  next[ 1 ]         = 0;
   heap_insert(0,50);
-  heap_insert(1,50);
 
   for(int a=0; a<subBlockNo; a++){
     used[a] = 0;
@@ -235,7 +226,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
    * restored (i.e., executed) when the function then returns.
    */
 
-  nAP = 2;
+  nAP = 1;
   TIMER0->Timer1Load     = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl     = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl    |= 0x00000040; // select periodic timer

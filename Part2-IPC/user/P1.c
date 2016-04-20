@@ -5,8 +5,8 @@ void P1() {
   int b = makeChan(1,2);
   int t = 0;
   void* send;
-  int next   = 0;
   int val = 0;
+  int next   = 0;
   int lowest = *((int*) readChan(a));
   for(int i=0;i<9;i++){
     next = *((int *) readChan(a));

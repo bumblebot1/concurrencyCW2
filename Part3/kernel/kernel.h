@@ -15,7 +15,6 @@
 
 // Include definitions relating to the 2 user programs.
 
-#include "ConcDisk.h"
 #include "DiskTest.h"
 #include "fileSys.h"
 

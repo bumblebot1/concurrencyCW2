@@ -21,7 +21,4 @@ SECTIONS {
   /* allocate stack for DiskTest       */
   .       = . + 0x00001000;
   tos_DiskTest  = .;
-  /* allocate stack for ConcDisk       */
-  .       = . + 0x00001000;
-  tos_ConcDisk  = .;
 }
