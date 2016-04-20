@@ -233,19 +233,30 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 4 ].chanblock= maxProcesses+1;
   entry[ 4 ].pc     = ( uint32_t )( entry_P4 );
   entry[ 4 ].active = 1;
-  next[ 4 ]         = 0;
+  next[ 4 ]         = 5;
+
+  memset( &pcb[ 5 ], 0, sizeof( pcb_t ) );
+  pcb[ 5 ].pid      = 5;
+  pcb[ 5 ].ctx.cpsr = 0x50;
+  pcb[ 5 ].ctx.pc   = ( uint32_t )( entry_P5 );
+  pcb[ 5 ].ctx.sp   = ( uint32_t )(  &tos_P5 );
+  pcb[ 5 ].chanblock= maxProcesses+1;
+  entry[ 5 ].pc     = ( uint32_t )( entry_P5 );
+  entry[ 5 ].active = 1;
+  next[ 5 ]         = 0;
 
   heap_insert(0,30);
   heap_insert(1,30);
   heap_insert(2,30);
   heap_insert(3,30);
   heap_insert(4,30);
+  heap_insert(5,30);
   current = &pcb[ 0 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
    */
 
-  nAP = 5;
+  nAP = 6;
   TIMER0->Timer1Load     = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl     = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl    |= 0x00000040; // select periodic timer
