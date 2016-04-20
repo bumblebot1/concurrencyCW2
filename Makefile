@@ -14,12 +14,19 @@ clean-part2-IPC:
 	(cd Part2-IPC; make clean)
 
 
-launch-part2-rr-qemu:
+launch-part2-round-qemu:
 	(cd Part2-rr; make launch-qemu)
-launch-part2-rr-gdb:
+launch-part2-round-gdb:
 	(cd Part2-rr; make launch-gdb)
-clean-part2-rr:
+clean-part2-round:
 	(cd Part2-rr; make clean)
+
+launch-part2-shell-qemu:
+	(cd Part2-shell; make launch-qemu)
+launch-part2-shell-gdb:
+	(cd Part2-shell; make launch-gdb)
+clean-part2-shell:
+	(cd Part2-shell; make clean)
 
 
 launch-part2-priority-qemu:
@@ -40,6 +47,7 @@ disk-part3:
 	(cd Part3; cd device; python disk.py --host=127.0.0.1 --port=1235 --file=disk.bin --block-num=65536 --block-len=16 )
 reset-disk:
 	(cd Part3; cd device; dd of=disk.bin if=/dev/zero count=1048576 bs=1)
+view-disk:
+	(cd Part3; cd device; hexdump -C disk.bin)
 
-clean-all: clean-part1 clean-part2-rr	clean-part2-priority clean-part2-IPC clean-part3
-
+clean-all: clean-part1 clean-part2-round clean-part2-shell clean-part2-priority clean-part2-IPC clean-part3
