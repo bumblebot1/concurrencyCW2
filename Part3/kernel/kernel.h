@@ -39,6 +39,7 @@ typedef struct {
   pid_t pid;
   ctx_t ctx;
   uint8_t block;
+  uint32_t chanblock;
 } pcb_t;
 
 typedef struct {
