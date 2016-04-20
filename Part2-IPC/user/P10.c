@@ -1,8 +1,8 @@
-#include "P5.h"
+#include "P10.h"
 
-void P5() {
-  int a = makeChan(4,5);//left
-  int b = makeChan(5,6);
+void P10() {
+  int a = makeChan(9,10);//left
+  int b = makeChan(10,11);
   int t = 0;
   void* send;
   int val = 0;
@@ -27,4 +27,4 @@ void P5() {
   while(1){}
 }
 
-void (*entry_P5)() = &P5;
+void (*entry_P10)() = &P10;

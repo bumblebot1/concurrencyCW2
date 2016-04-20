@@ -273,7 +273,37 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 8 ].chanblock= maxProcesses+1;
   entry[ 8 ].pc     = ( uint32_t )( entry_P8 );
   entry[ 8 ].active = 1;
-  next[ 8 ]         = 0;
+  next[ 8 ]         = 9;
+
+  memset( &pcb[ 9 ], 0, sizeof( pcb_t ) );
+  pcb[ 9 ].pid      = 9;
+  pcb[ 9 ].ctx.cpsr = 0x50;
+  pcb[ 9 ].ctx.pc   = ( uint32_t )( entry_P9 );
+  pcb[ 9 ].ctx.sp   = ( uint32_t )(  &tos_P9 );
+  pcb[ 9 ].chanblock= maxProcesses+1;
+  entry[ 9 ].pc     = ( uint32_t )( entry_P9 );
+  entry[ 9 ].active = 1;
+  next[ 9 ]         = 10;
+
+  memset( &pcb[ 10 ], 0, sizeof( pcb_t ) );
+  pcb[ 10 ].pid      = 10;
+  pcb[ 10 ].ctx.cpsr = 0x50;
+  pcb[ 10 ].ctx.pc   = ( uint32_t )( entry_P10 );
+  pcb[ 10 ].ctx.sp   = ( uint32_t )(  &tos_P10 );
+  pcb[ 10 ].chanblock= maxProcesses+1;
+  entry[ 10 ].pc     = ( uint32_t )( entry_P10 );
+  entry[ 10 ].active = 1;
+  next[ 10 ]         = 11;
+
+  memset( &pcb[ 11 ], 0, sizeof( pcb_t ) );
+  pcb[ 11 ].pid      = 11;
+  pcb[ 11 ].ctx.cpsr = 0x50;
+  pcb[ 11 ].ctx.pc   = ( uint32_t )( entry_P11 );
+  pcb[ 11 ].ctx.sp   = ( uint32_t )(  &tos_P11 );
+  pcb[ 11 ].chanblock= maxProcesses+1;
+  entry[ 11 ].pc     = ( uint32_t )( entry_P11 );
+  entry[ 11 ].active = 1;
+  next[ 11 ]         = 0;
 
   heap_insert(0,30);
   heap_insert(1,30);
@@ -284,13 +314,17 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   heap_insert(6,30);
   heap_insert(7,30);
   heap_insert(8,30);
+  heap_insert(9,30);
+  heap_insert(10,30);
+  heap_insert(11,30);
+
   current = &pcb[ 0 ]; memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
    */
 
-  nAP = 9;
-  TIMER0->Timer1Load     = 0x00100000; // select period = 2^20 ticks ~= 1 sec
+  nAP = 12;
+  TIMER0->Timer1Load     = 0x00010000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl     = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl    |= 0x00000040; // select periodic timer
   TIMER0->Timer1Ctrl    |= 0x00000020; // enable          timer interrupt

@@ -45,4 +45,13 @@ SECTIONS {
   /* allocate stack for P8       */
   .       = . + 0x00001000;
   tos_P8  = .;
+  /* allocate stack for P9       */
+  .       = . + 0x00001000;
+  tos_P9  = .;
+  /* allocate stack for P10       */
+  .       = . + 0x00001000;
+  tos_P10  = .;
+  /* allocate stack for P11       */
+  .       = . + 0x00001000;
+  tos_P11  = .;
 }
