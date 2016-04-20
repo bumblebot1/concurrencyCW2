@@ -153,11 +153,9 @@ void scheduler(ctx_t* ctx){
 }
 
 void blockProc(int pid){
-  PL011_puth(UART0,noProcsInHeap);
-  PL011_putc(UART0,'\n');
   if(noProcsInHeap == 1){
     while(1){
-
+      //livelock since channel blocks only proc which can be scheduled
     }
   }
   heap_remove(pid);
