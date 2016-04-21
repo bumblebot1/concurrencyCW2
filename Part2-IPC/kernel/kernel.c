@@ -252,7 +252,7 @@ void kernel_handler_rst( ctx_t* ctx              ) {
   pcb[ 6 ].chanblock= maxProcesses+1;
   entry[ 6 ].pc     = ( uint32_t )( entry_P6 );
   entry[ 6 ].active = 1;
-  next[ 6 ]         = 6;
+  next[ 6 ]         = 7;
 
   memset( &pcb[ 7 ], 0, sizeof( pcb_t ) );
   pcb[ 7 ].pid      = 7;
