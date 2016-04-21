@@ -21,7 +21,6 @@ heap_t heap[ heapSize ];
 uint32_t nAP  = 0; //number of active proceses
 uint32_t nDCP = 0; //number of dynamically create processes
 uint32_t next[maxProcesses];
-uint32_t slice = 0;//3 iterations per schedule call
 heap_t res;
 chan_t channels[maxProcesses];
 uint32_t nChans = 0;
@@ -35,10 +34,6 @@ int leftSeek(int index,int offset);
 int rightSeek(int index,int offset);
 
 void rrScheduler( ctx_t* ctx ) {
-  slice = (slice+1)%3;
-  if(slice != 0){
-    return;
-  }
   uint32_t pid = (*current).pid;
   uint32_t nxt = next[ pid ];
   while(pcb[ nxt ].block == 1){
@@ -412,7 +407,6 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       for(uint32_t i =0; i <= lastPindex; i++){
         if(next[ i ] == pid){
           if(pid == (*current).pid){
-            slice = 2;
             scheduler(ctx);
           }
           next[ i ] = next[ pid ];

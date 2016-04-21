@@ -24,7 +24,6 @@ uint32_t next[maxProcesses];
 heap_t res;
 chan_t channels[maxProcesses];
 int noProcsInHeap = 0;
-uint32_t slice = 0;
 uint32_t nChans = 0;
 uint8_t schedType = 1;
 uint8_t used[subBlockSize]; //disk subblock used/unused
@@ -521,7 +520,6 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       for(uint32_t i =0; i <= lastPindex; i++){
         if(next[ i ] == pid){
           if(pid == (*current).pid){
-            slice = 2;
             scheduler(ctx);
           }
           next[ i ] = next[ pid ];
