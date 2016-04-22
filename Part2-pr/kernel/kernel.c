@@ -410,12 +410,12 @@ void kernel_handler_svc( ctx_t* ctx, uint32_t id ) {
       }
       for(uint32_t i =0; i <= lastPindex; i++){
         if(next[ i ] == pid){
+          heap_remove(pid);
           if(pid == (*current).pid){
             scheduler(ctx);
           }
           next[ i ] = next[ pid ];
           next[ pid ] = heapSize;
-          heap_remove(pid);
           break;
         }
       }
