@@ -1,2 +1,2 @@
 ## Operating system CW
-This is an operating system kernel which was built as part of a coursework for the concurrency 2nd year unit.
+This is an operating system kernel which was built as part of a coursework for the concurrency 2nd year unit. It includes a priority based process scheduler using a binary heap as priority queue, an api for inter process message passing whose functionality was demonstrated using a pipeline sort algorithm as well as basic file system functionality built on top of a simulated disk.
